@@ -10519,8 +10519,6 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 	    && SolidProp->Thermal_Expansion() == .0)
 		return;
 
-	ElementValue* gp_ele = ele_gp_value[Index];
-
 	//----------------------------------------------------------------------
 	for (int i = 0; i < nnodes; i++)
 		NodalVal[i] = 0.0;
@@ -10538,7 +10536,6 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 		// Compute geometry
 		//---------------------------------------------------------
 		getShapefunctValues(gp, 1); // Linear interpolation function
-		getGradShapefunctValues(gp, 1);
 		//  Evaluate variables
 		//---------------------------------------------------------
 		const double T_n = interpolate(NodalValC);
@@ -10548,18 +10545,18 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 		//  Evaluate material property
 		//---------------------------------------------------------
 		const double poro = MediaProp->Porosity(Index, pcs->m_num->ls_theta);
-		double beta_T_s = 3. * SolidProp->Thermal_Expansion(); // multiply 3 for volumetrix expression
+        double beta_T_s = 3. * SolidProp->Thermal_Expansion(); // multiply 3 for volumetrix expression
 		Sw = 1.0;
-		double beta_T_l;
+        double beta_T_l;
 		if (FluidProp->density_model > 7 && FluidProp->density_model < 15)
 		{
 			double arg[2];
 			arg[0] = interpolate(NodalVal1); // p
 			arg[1] = interpolate(NodalValC1); // T
-			beta_T_l = -FluidProp->drhodT(arg) / FluidProp->Density();
+            beta_T_l = -FluidProp->drhodT(arg) / FluidProp->Density();
 		}
 		else
-			beta_T_l = -FluidProp->drho_dT; // negative sign is required due to OGS input
+            beta_T_l = -FluidProp->drho_dT; // negative sign is required due to OGS input
 
 		if (PcsType == EPT_RICHARDS_FLOW)
 		{
@@ -10570,35 +10567,14 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 				if (FluidProp->drho_dT_unsaturated)
 					Sw = MediaProp->SaturationCapillaryPressureFunction(-PG);
 				else
-					beta_T_l = beta_T_s = 0.0;
+                    beta_T_l = beta_T_s = 0.0;
 			}
 		}
-		const double eff_thermal_expansion = (SolidProp->biot_const - poro) * beta_T_s + poro * Sw * beta_T_l;
+        const double eff_thermal_expansion = (SolidProp->biot_const - poro) * beta_T_s + poro * Sw * beta_T_l;
 		//---------------------------------------------------------
-		//  Compute RHS+=int{N^T beta_T dT/dt}
+        //  Compute RHS+=int{N^T beta_T dT/dt}
 		//---------------------------------------------------------
 		const double fac = eff_thermal_expansion * dT / dt / time_unit_factor; // WX:bug fixed
-
-		// Add term RHS+=int{N^T beta_TF grad T \cdot (\phi_F w_FS)}
-
-		double* grad_T = new double[dim]; // gradient of gas pressure.
-		double fac2 = 0.;
-
-		for (size_t i = 0; i < dim; i++) // loop over all dimensions
-		{
-			grad_T[i] = 0.0; // clear to zero;
-			for (int j = 0; j < nnodes; j++) // loop over all connecting nodes
-			{
-				const double T_tmp = (1.0 - pcs->m_num->ls_theta) * NodalValC[j]
-				                     + pcs->m_num->ls_theta * NodalValC1[j]; // tmp value of temperature
-				const int index_tmp = i * nnodes + j;
-				grad_T[i] += dshapefct[index_tmp] * T_tmp;
-			}
-			fac2 += grad_T[i] * gp_ele->Velocity(i, gp);
-		}
-
-		fac2 *= beta_T_l;
-		delete[] grad_T;
 
 #if defined(USE_PETSC) //|| defined (other parallel solver) //WW 04.2014
 		for (int ia = 0; ia < act_nodes; ia++)
@@ -10608,7 +10584,7 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 		for (int i = 0; i < nnodes; i++)
 		{
 #endif
-			NodalVal[i] += gp_fkt * (fac + fac2) * shapefct[i];
+			NodalVal[i] += gp_fkt * fac * shapefct[i];
 		}
 	}
 
