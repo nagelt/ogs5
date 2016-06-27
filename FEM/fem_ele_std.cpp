@@ -2164,9 +2164,6 @@ void CFiniteElementStd::CalCoefLaplace(bool Gravity, int ip)
 		default:
 			break;
 		case EPT_LIQUID_FLOW: // Liquid flow
-			k_rel = 1.0;
-			if (MediaProp->flowlinearity_model > 0)
-				k_rel = MediaProp->NonlinearFlowFunction(index, gp, pcs->m_num->ls_theta, this);
 			tensor = MediaProp->PermeabilityTensor(Index);
 			// AS:08.2012 permeability function eff stress
 			if (MediaProp->permeability_effstress_model > 0)
@@ -2229,7 +2226,7 @@ void CFiniteElementStd::CalCoefLaplace(bool Gravity, int ip)
 					tensor[i * dim + i] *= w[i];
 			}
 			for (size_t i = 0; i < dim * dim; i++)
-				mat[i] = tensor[i] / mat_fac * perm_effstress * k_rel; // AS:perm. dependent eff stress.
+				mat[i] = tensor[i] / mat_fac * perm_effstress; // AS:perm. dependent eff stress.
 
 			break;
 		case EPT_GROUNDWATER_FLOW: // Groundwater flow
@@ -10539,7 +10536,7 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 		// Compute geometry
 		//---------------------------------------------------------
 		getShapefunctValues(gp, 1); // Linear interpolation function
-		//---------------------------------------------------------
+		getGradShapefunctValues(gp,1);
 		//  Evaluate variables
 		//---------------------------------------------------------
 		const double T_n = interpolate(NodalValC);
@@ -10579,6 +10576,7 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 		//  Compute RHS+=int{N^T alpha_T dT/dt}
 		//---------------------------------------------------------
 		const double fac = eff_thermal_expansion * dT / dt / time_unit_factor; // WX:bug fixed
+
 #if defined(USE_PETSC) //|| defined (other parallel solver) //WW 04.2014
 		for (int ia = 0; ia < act_nodes; ia++)
 		{
