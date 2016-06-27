@@ -10548,18 +10548,18 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 		//  Evaluate material property
 		//---------------------------------------------------------
 		const double poro = MediaProp->Porosity(Index, pcs->m_num->ls_theta);
-		double alpha_T_s = 3. * SolidProp->Thermal_Expansion(); // multiply 3 for volumetrix expression
+        double beta_T_s = 3. * SolidProp->Thermal_Expansion(); // multiply 3 for volumetrix expression
 		Sw = 1.0;
-		double alpha_T_l;
+        double beta_T_l;
 		if (FluidProp->density_model > 7 && FluidProp->density_model < 15)
 		{
 			double arg[2];
 			arg[0] = interpolate(NodalVal1); // p
 			arg[1] = interpolate(NodalValC1); // T
-			alpha_T_l = -FluidProp->drhodT(arg) / FluidProp->Density();
+            beta_T_l = -FluidProp->drhodT(arg) / FluidProp->Density();
 		}
 		else
-			alpha_T_l = -FluidProp->drho_dT; // negative sign is required due to OGS input
+            beta_T_l = -FluidProp->drho_dT; // negative sign is required due to OGS input
 
 		if (PcsType == EPT_RICHARDS_FLOW)
 		{
@@ -10570,12 +10570,12 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 				if (FluidProp->drho_dT_unsaturated)
 					Sw = MediaProp->SaturationCapillaryPressureFunction(-PG);
 				else
-					alpha_T_l = alpha_T_s = 0.0;
+                    beta_T_l = beta_T_s = 0.0;
 			}
 		}
-		const double eff_thermal_expansion = (SolidProp->biot_const - poro) * alpha_T_s + poro * Sw * alpha_T_l;
+        const double eff_thermal_expansion = (SolidProp->biot_const - poro) * beta_T_s + poro * Sw * beta_T_l;
 		//---------------------------------------------------------
-		//  Compute RHS+=int{N^T alpha_T dT/dt}
+        //  Compute RHS+=int{N^T beta_T dT/dt}
 		//---------------------------------------------------------
 		const double fac = eff_thermal_expansion * dT / dt / time_unit_factor; // WX:bug fixed
 
@@ -10589,15 +10589,15 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 			grad_T[i] = 0.0; // clear to zero;
 			for (int j = 0; j < nnodes; j++) // loop over all connecting nodes
 			{
-				const double pg_tmp = (1.0 - pcs->m_num->ls_theta) * NodalValC[j]
+                const double T_tmp = (1.0 - pcs->m_num->ls_theta) * NodalValC[j]
 				                + pcs->m_num->ls_theta * NodalValC1[j]; // tmp value of temperature
 				const int index_tmp = i * nnodes + j;
-				grad_T[i] += dshapefct[index_tmp] * pg_tmp;
+                grad_T[i] += dshapefct[index_tmp] * T_tmp;
 			}
 			fac2 += grad_T[i] * gp_ele->Velocity(i, gp);
 		}
 
-		fac2 *= alpha_T_l;
+        fac2 *= beta_T_l;
 		delete[] grad_T;
 
 #if defined(USE_PETSC) //|| defined (other parallel solver) //WW 04.2014
