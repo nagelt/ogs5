@@ -2441,12 +2441,10 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			if (smat->Creep_mode == 1001) //BURGERS.
 			{
 			//get total strains at time t and current iteration i
-			double *strain_t, *strain_curr;
-			strain_t = new double[6]; strain_curr = new double[6];
+			std::vector<double> strain_t(6), strain_curr(6);
 
 			//get stresses as well as internal variables at time t and current iteration i (equal before local Newton)
-			double *stress_curr, *eps_K_curr, *eps_M_curr;
-			stress_curr = new double[6]; eps_K_curr = new double[6]; eps_M_curr = new double[6];
+			std::vector<double> stress_curr(6), eps_K_curr(6), eps_M_curr(6);
 			for (int compnt (0); compnt<ns; compnt++){
 				strain_t[compnt] = (*eleV_DM->Strain_t_ip)(compnt,gp);
 				strain_curr[compnt] = strain_t[compnt] + dstrain[compnt];
@@ -2465,8 +2463,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				}
 
 			//6x6 tangent
-			Matrix* ConsD;
-			ConsD = new Matrix(6,6);
+			Matrix ConsD(6,6);
 			bool output=false;
 			//                if (MeshElement->GetIndex() == 1031 && gp==0 && update < 1)
 			//                    output = true;
@@ -2482,26 +2479,18 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				(*eleV_DM->Strain_t_ip)(compnt,gp) = strain_curr[compnt];
 				}
 				for (int compnt2(0); compnt2<ns; compnt2++)
-					(*De)(compnt,compnt2) = (*ConsD)(compnt,compnt2);
+					(*De)(compnt,compnt2) = ConsD(compnt,compnt2);
 					(*eleV_DM->Strain)(compnt,gp) = strain_curr[compnt];
 				}
 
-				delete [] strain_t; delete [] strain_curr;
-				delete [] stress_curr; delete [] eps_K_curr;
-				delete [] eps_M_curr;
-				delete ConsD;
-				ConsD = NULL;
 			}
 
             if (smat->Creep_mode == 1002) //MINKLEY
             {
 				//get total strains at time t and current iteration i
-				double *strain_t, *strain_curr;
-				strain_t = new double[6]; strain_curr = new double[6];
+				std::vector<double> strain_t(6), strain_curr(6);
 
-				//get stresses as well as internal variables at time t and current iteration i (equal before local Newton)
-				double *stress_curr, *eps_K_curr, *eps_pl_curr, *eps_M_curr;
-				stress_curr = new double[6]; eps_K_curr = new double[6]; eps_pl_curr = new double[6]; eps_M_curr = new double[6];
+				std::vector<double> stress_curr(6), eps_K_curr(6), eps_M_curr(6), eps_pl_curr(6);
 				for (int compnt (0); compnt<ns; compnt++){
 					stress_curr[compnt] = (*eleV_DM->Stress)(compnt, gp);
 					eps_K_curr[compnt] = (*eleV_DM->Strain_Kel)(compnt,gp);
@@ -2527,8 +2516,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 
 
 				//6x6 tangent
-				Matrix* ConsD;
-				ConsD = new Matrix(6,6);
+				Matrix ConsD(6,6);
 
 				bool output=false;
 				//                if (MeshElement->GetIndex() == 1031 && gp==0 && update < 1)
@@ -2547,7 +2535,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 						(*eleV_DM->Strain_t_ip)(compnt,gp) = strain_curr[compnt];
 					}
 					for (int compnt2(0); compnt2<ns; compnt2++)
-						(*De)(compnt,compnt2) = (*ConsD)(compnt,compnt2);
+						(*De)(compnt,compnt2) = ConsD(compnt,compnt2);
 					(*eleV_DM->Strain)(compnt,gp) = strain_curr[compnt];
 				}
 
@@ -2557,12 +2545,6 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 					(*eleV_DM->lambda_pl)(gp) = lam;
 					(*eleV_DM->pStrain)(gp) = e_pl_eff;
 				}
-
-				delete [] strain_t; delete [] strain_curr;
-				delete [] stress_curr; delete [] eps_K_curr;
-				delete [] eps_M_curr; delete [] eps_pl_curr;
-				delete ConsD;
-				ConsD = NULL;
             }
 
 			// Fluid coupling;

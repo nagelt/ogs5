@@ -151,17 +151,17 @@ public:
 	void setSolidReactiveSystem(FiniteElement::SolidReactiveSystem reactive_system);
 
 	//Kelvin/Voigt mapping routines for 6D vectors
-	KVec Voigt_to_Kelvin_Stress(const double *voigt_stress);
-	KVec Voigt_to_Kelvin_Strain(const double *voigt_strain);
-	void Kelvin_to_Voigt_Stress(const KVec &kelvin_stress, double *voigt_stress);
-	void Kelvin_to_Voigt_Strain(const KVec &kelvin_strain, double *voigt_strain);
+	KVec Voigt_to_Kelvin_Stress(const std::vector<double>& voigt_stress);
+	KVec Voigt_to_Kelvin_Strain(const std::vector<double>& voigt_strain);
+	void Kelvin_to_Voigt_Stress(const KVec &kelvin_stress, std::vector<double>& voigt_stress);
+	void Kelvin_to_Voigt_Strain(const KVec &kelvin_strain, std::vector<double>& voigt_strain);
 	//general routine to get consistent tangent from local Newton iteration of material functionals
 	void ExtractConsistentTangent(const Eigen::MatrixXd &Jac, const Eigen::MatrixXd &dGdE,  const bool pivoting, Eigen::Matrix<double,6,6> &dsigdE);
     //general local Newton routines to integrate inelastic material models
-	void LocalNewtonBurgers(const double dt, double* strain_curr, double* stress_curr, double* eps_K_curr, double* eps_M_curr,
-                            Math_Group::Matrix* Consistent_Tangent, bool Output, double Temperature);
-	void LocalNewtonMinkley(const double dt, double* strain_curr, double* stress_curr, double* eps_K_curr, double* eps_M_curr,
-                            double* eps_pl_curr, double& e_pl_v, double& e_pl_eff, double& lam, Math_Group::Matrix* Consistent_Tangent,
+	void LocalNewtonBurgers(const double dt, const std::vector<double>& strain_curr, std::vector<double>& stress_curr, std::vector<double>& strain_K_curr, std::vector<double>& strain_M_curr,
+							Math_Group::Matrix& Consistent_Tangent, bool Output, double Temperature);
+	void LocalNewtonMinkley(const double dt, const std::vector<double>& strain_curr, std::vector<double>& stress_curr, std::vector<double>& eps_K_curr, std::vector<double>& eps_M_curr,
+							std::vector<double>& eps_pl_curr, double& e_pl_v, double& e_pl_eff, double& lam, Math_Group::Matrix& Consistent_Tangent,
 							bool Output, double Temperature);
 
 private:

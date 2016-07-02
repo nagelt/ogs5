@@ -1655,7 +1655,7 @@ double CSolidProperties::Kronecker(const int ii, const int jj)
    Programing:
    06/2015 TN Implementation
 **************************************************************************/
-KVec CSolidProperties::Voigt_to_Kelvin_Strain(const double *voigt_strain)
+KVec CSolidProperties::Voigt_to_Kelvin_Strain(const std::vector<double>& voigt_strain)
 {
 	KVec kelvin_strain;
 	for (size_t i=0; i<3; i++)
@@ -1676,7 +1676,7 @@ KVec CSolidProperties::Voigt_to_Kelvin_Strain(const double *voigt_strain)
    Programing:
    06/2015 TN Implementation
 **************************************************************************/
-KVec CSolidProperties::Voigt_to_Kelvin_Stress(const double *voigt_stress)
+KVec CSolidProperties::Voigt_to_Kelvin_Stress(const std::vector<double>& voigt_stress)
 {
 	KVec kelvin_stress;
 	for (size_t i=0; i<3; i++)
@@ -1697,7 +1697,7 @@ KVec CSolidProperties::Voigt_to_Kelvin_Stress(const double *voigt_stress)
    Programing:
    06/2015 TN Implementation
 **************************************************************************/
-void CSolidProperties::Kelvin_to_Voigt_Strain(const KVec &kelvin_strain, double *voigt_strain)
+void CSolidProperties::Kelvin_to_Voigt_Strain(const KVec &kelvin_strain, std::vector<double>& voigt_strain)
 {
 	for (size_t i=0; i<3; i++)
 	{
@@ -1717,7 +1717,7 @@ void CSolidProperties::Kelvin_to_Voigt_Strain(const KVec &kelvin_strain, double 
    Programing:
    06/2015 TN Implementation
 **************************************************************************/
-void CSolidProperties::Kelvin_to_Voigt_Stress(const KVec &kelvin_stress, double *voigt_stress)
+void CSolidProperties::Kelvin_to_Voigt_Stress(const KVec &kelvin_stress, std::vector<double>& voigt_stress)
 {
 	for (size_t i=0; i<3; i++)
 	{
@@ -1762,9 +1762,8 @@ void CSolidProperties::ExtractConsistentTangent(const Eigen::MatrixXd &Jac, cons
    06/2014 TN Implementation
    03/2015 NB Modified
 **************************************************************************/
-void CSolidProperties::LocalNewtonBurgers(const double dt, double* strain_curr,
-		double* stress_curr, double* strain_K_curr, double* strain_M_curr,
-        Matrix* Consistent_Tangent, bool Output, double Temperature)
+void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<double>& strain_curr, std::vector<double>& stress_curr, std::vector<double>& strain_K_curr, std::vector<double>& strain_M_curr,
+										  Math_Group::Matrix& Consistent_Tangent, bool Output, double Temperature)
 {
 	//stress, strain, internal variable
 	KVec sig_j, eps_K_j, eps_M_j;
@@ -1870,10 +1869,10 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, double* strain_curr,
 	for (size_t i=0; i<3; i++)
 	{
 		for (size_t j=0; j<3; j++){
-			(*Consistent_Tangent)(i,j) = dsigdE(i,j);
-			(*Consistent_Tangent)(i,j+3) = dsigdE(i,j+3)/sqrt(2.);//from local to global shear components (Kelvin to Voigt)
-			(*Consistent_Tangent)(i+3,j) = dsigdE(i+3,j)/sqrt(2.);//from local to global shear components (Kelvin to Voigt)
-			(*Consistent_Tangent)(i+3,j+3) = dsigdE(i+3,j+3)/2.;//from local to global shear components (Kelvin to Voigt)
+			Consistent_Tangent(i,j) = dsigdE(i,j);
+			Consistent_Tangent(i,j+3) = dsigdE(i,j+3)/sqrt(2.);//from local to global shear components (Kelvin to Voigt)
+			Consistent_Tangent(i+3,j) = dsigdE(i+3,j)/sqrt(2.);//from local to global shear components (Kelvin to Voigt)
+			Consistent_Tangent(i+3,j+3) = dsigdE(i+3,j+3)/2.;//from local to global shear components (Kelvin to Voigt)
 		}
 	}
 }
@@ -1884,9 +1883,9 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, double* strain_curr,
    Programing:
    06/2015 TN Implementation
 **************************************************************************/
-void CSolidProperties::LocalNewtonMinkley(const double dt, double* strain_curr, double* stress_curr, double* eps_K_curr,
-										  double* eps_M_curr, double* eps_pl_curr, double& e_pl_v, double& e_pl_eff,
-										  double& lam, Matrix* Consistent_Tangent,bool Output, double Temperature)
+void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<double>& strain_curr, std::vector<double>& stress_curr, std::vector<double>& eps_K_curr, std::vector<double>& eps_M_curr,
+										  std::vector<double>& eps_pl_curr, double& e_pl_v, double& e_pl_eff, double& lam, Math_Group::Matrix& Consistent_Tangent,
+										  bool Output, double Temperature)
 {
 	//stress, strain, internal variable
 	KVec sig_j, eps_K_j, eps_M_j, eps_pl_j;
@@ -2035,10 +2034,10 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, double* strain_curr, 
 	for (size_t i=0; i<3; i++)
 	{
 		for (size_t j=0; j<3; j++){
-			(*Consistent_Tangent)(i,j) = dsigdE(i,j);
-			(*Consistent_Tangent)(i,j+3) = dsigdE(i,j+3)/sqrt(2.);//from local to global shear components (Kelvin to Voigt)
-			(*Consistent_Tangent)(i+3,j) = dsigdE(i+3,j)/sqrt(2.);//from local to global shear components (Kelvin to Voigt)
-			(*Consistent_Tangent)(i+3,j+3) = dsigdE(i+3,j+3)/2.;//from local to global shear components (Kelvin to Voigt)
+			Consistent_Tangent(i,j) = dsigdE(i,j);
+			Consistent_Tangent(i,j+3) = dsigdE(i,j+3)/sqrt(2.);//from local to global shear components (Kelvin to Voigt)
+			Consistent_Tangent(i+3,j) = dsigdE(i+3,j)/sqrt(2.);//from local to global shear components (Kelvin to Voigt)
+			Consistent_Tangent(i+3,j+3) = dsigdE(i+3,j+3)/2.;//from local to global shear components (Kelvin to Voigt)
 		}
 	}
 }

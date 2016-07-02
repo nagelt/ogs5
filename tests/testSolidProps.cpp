@@ -29,12 +29,8 @@ TEST(SolidProps, EffectiveStress)
 	sigd.setZero(6); sig.setZero(6);
 
 	//stress values
-	double *stress;
-	stress = new double[6];
-	stress[0] = 0.01; stress[1] = 0.02; stress[2] = 0.03;
-	stress[3] = 0.04; stress[4] = 0.05; stress[5] = 0.06;
+	std::vector<double> stress(6);
 	sig  = solid.Voigt_to_Kelvin_Stress(stress);//Kelvin mapping
-	delete [] stress;
 	sigd = SolidMath::P_dev*sig;
 
 	const double s_eff(SolidMath::CalEffectiveStress(sig));
@@ -96,7 +92,7 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 {
 	SolidProp::CSolidProperties solid;
 	SolidMath::InitialiseProjectionTensors();
-	Math_Group::Matrix* data;
+	Math_Group::Matrix *data;
 	data = new Math_Group::Matrix(13);
 
 	//set Constants
@@ -125,12 +121,10 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 	epsd_t.setZero(6); epsd_i.setZero(6);
 
 	//set a strain increment and perform Kelvin mapping
-	double *strain_bc;
-	strain_bc = new double[6];
+	std::vector<double> strain_bc(6);
 	strain_bc[0] = 0.01; strain_bc[1] = 0.02; strain_bc[2] = 0.03;
 	strain_bc[3] = 0.04*2.; strain_bc[4] = 0.05*2.; strain_bc[5] = 0.06*2.;
 	eps_i = solid.Voigt_to_Kelvin_Strain(strain_bc);
-	delete [] strain_bc;
 	
 	epsd_i = SolidMath::P_dev*eps_i;
 
@@ -281,14 +275,11 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 	epsd_t.setZero(6); epsd_i.setZero(6);
 
 	//set a strain increment and perform Kelvin mapping
-	double *strain_bc;
-	strain_bc = new double[6];
+	std::vector<double> strain_bc(6);
 	strain_bc[0] = 0.01; strain_bc[1] = 0.02; strain_bc[2] = 0.03;
 	strain_bc[3] = 0.04*2.; strain_bc[4] = 0.05*2.; strain_bc[5] = 0.06*2.;
 	eps_i = solid.Voigt_to_Kelvin_Strain(strain_bc);
 	eps_i *= 0.01;
-
-	delete [] strain_bc;
 
 	epsd_i = SolidMath::P_dev*eps_i;
 
@@ -437,14 +428,11 @@ TEST(SolidProps, MinkleyFullResidual)
 	Eigen::Matrix<double,27,1> residual;
 
 	//set a strain increment and perform Kelvin mapping
-	double *strain_bc;
-	strain_bc = new double[6];
+	std::vector<double> strain_bc(6);
 	strain_bc[0] = 0.01; strain_bc[1] = 0.02; strain_bc[2] = 0.03;
 	strain_bc[3] = 0.04*2.; strain_bc[4] = 0.05*2.; strain_bc[5] = 0.06*2.;
 	eps_i = solid.Voigt_to_Kelvin_Strain(strain_bc);
 	eps_i *= -0.01;
-
-	delete [] strain_bc;
 
 	epsd_i = SolidMath::P_dev*eps_i;
 
@@ -545,14 +533,11 @@ TEST(SolidProps, MinkleyFullJacobian)
 	Eigen::Matrix<double,27,1> residual;
 
 	//set a strain increment and perform Kelvin mapping
-	double *strain_bc;
-	strain_bc = new double[6];
+	std::vector<double> strain_bc;
 	strain_bc[0] = 0.01; strain_bc[1] = 0.02; strain_bc[2] = 0.03;
 	strain_bc[3] = 0.04*2.; strain_bc[4] = 0.05*2.; strain_bc[5] = 0.06*2.;
 	eps_i = solid.Voigt_to_Kelvin_Strain(strain_bc);
 	eps_i *= -0.01;
-
-	delete [] strain_bc;
 
 	epsd_i = SolidMath::P_dev*eps_i;
 
