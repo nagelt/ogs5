@@ -6,23 +6,24 @@
 // */
 
 // ** INCLUDES **
-#include "gtest.h"
+//#include "stdio.h"
+#include <fstream>
 
+#include "Eigen/Dense"
+
+#include "gtest.h"
 #include "fem_ele_vec.h"
 #include "rf_msp_new.h"
-#include "Eigen/Dense"
 #include "makros.h"
 #include <cfloat>
 #include "burgers.h"
 #include "minkley.h"
 #include "invariants.h"
-//#include "stdio.h"
-#include <fstream>
+
 
 TEST(SolidProps, EffectiveStress)
 {
 	SolidProp::CSolidProperties solid;
-	SolidMath::InitialiseProjectionTensors();
 
 	//stress vectors
 	Eigen::Matrix<double,6,1> sig, sigd;
@@ -42,7 +43,6 @@ TEST(SolidProps, EffectiveStress)
 
 TEST(SolidProps, LodeAngle)
 {
-	SolidMath::InitialiseProjectionTensors();
 	//stress vectors
 	Eigen::Matrix<double,6,1> sig, sigd;
 	sigd.setZero(6); sig.setZero(6);
@@ -91,7 +91,6 @@ TEST(SolidProps, LodeAngle)
 TEST(SolidProps, Lubby2JacobianNumeric)
 {
 	SolidProp::CSolidProperties solid;
-	SolidMath::InitialiseProjectionTensors();
 	Math_Group::Matrix *data;
 	data = new Math_Group::Matrix(13);
 
@@ -242,7 +241,6 @@ TEST(SolidProps, YieldMohrCoulomb)
 TEST(SolidProps, MinkleyJacobianNumeric)
 {
 	SolidProp::CSolidProperties solid;
-	SolidMath::InitialiseProjectionTensors();
 	Math_Group::Matrix* data;
 	data = new Math_Group::Matrix(15);
 
@@ -367,8 +365,6 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 
 TEST(SolidProps, TensorInversion)
 {
-	SolidMath::InitialiseProjectionTensors();
-
 	//state and trial variables
 	Eigen::Matrix<double,6,1> vec, inv, inv_t;
 	vec(0) = 1.7; vec(1) = -1.3; vec(2) = 0.8;
@@ -392,7 +388,6 @@ TEST(SolidProps, TensorInversion)
 TEST(SolidProps, MinkleyFullResidual)
 {
 	SolidProp::CSolidProperties solid;
-	SolidMath::InitialiseProjectionTensors();
 	Math_Group::Matrix* data;
 	data = new Math_Group::Matrix(15);
 
@@ -497,7 +492,6 @@ TEST(SolidProps, MinkleyFullResidual)
 TEST(SolidProps, MinkleyFullJacobian)
 {
 	SolidProp::CSolidProperties solid;
-	SolidMath::InitialiseProjectionTensors();
 	Math_Group::Matrix* data;
 	data = new Math_Group::Matrix(15);
 

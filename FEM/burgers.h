@@ -2,11 +2,11 @@
 #define BURGERS_H
 
 #include <cfloat>
+#include "Eigen/Dense"
 // FEM-Makros
 #include "makros.h"
 #include "tools.h"
 #include "invariants.h"
-#include "Eigen/Dense"
 
 namespace Burgers{
 

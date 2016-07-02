@@ -2,11 +2,11 @@
 #define MINKLEY_H
 
 #include <cfloat>
+#include "Eigen/Dense"
 // FEM-Makros
 #include "makros.h"
 #include "tools.h"
 #include "rf_msp_new.h"
-#include "Eigen/Dense"
 #include "invariants.h"
 
 namespace Minkley{
