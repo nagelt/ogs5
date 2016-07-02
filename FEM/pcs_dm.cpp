@@ -1050,7 +1050,7 @@ void CRFProcessDeformation::InitGauss(void)
 		Idx_Strain[5] = GetNodeValueIndex("STRAIN_YZ");
 	}
 	Idx_Strain[NS] = GetNodeValueIndex("STRAIN_PLS");
-	Idx_Strain[NS+1] = GetNodeValueIndex("DILATANCY");
+	Idx_Strain[NS + 1] = GetNodeValueIndex("DILATANCY");
 
 	for (j = 0; j < NS; j++)
 		stress_ic[j] = NULL;
@@ -1263,7 +1263,7 @@ void CRFProcessDeformation::CreateInitialState4Excavation()
 		Idx_Strain[5] = GetNodeValueIndex("STRAIN_YZ");
 	}
 	Idx_Strain[NS] = GetNodeValueIndex("STRAIN_PLS");
-	Idx_Strain[NS+1] = GetNodeValueIndex("DILATANCY");
+	Idx_Strain[NS + 1] = GetNodeValueIndex("DILATANCY");
 	// For excavation simulation. Moved here on 05.09.2007 WW
 	if (!_has_initial_stress_data)
 	{

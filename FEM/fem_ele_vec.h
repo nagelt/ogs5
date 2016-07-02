@@ -80,12 +80,12 @@ private:
 	Matrix* xi; // Rotational hardening variables
 	Matrix* MatP; // Material parameters
 
-	Matrix* Strain_Kel; //TN - Burgers model dev. Kelvin strain
-	Matrix* Strain_Max; //TN - Burgers model dev. Maxwell strain
-	Matrix* Strain_pl; //TN - Minkley - deviatoric plastic strain
-	Matrix* Strain_t_ip; //TN - introduced to save previous strain in all integration points
+	Matrix* Strain_Kel; // TN - Burgers model dev. Kelvin strain
+	Matrix* Strain_Max; // TN - Burgers model dev. Maxwell strain
+	Matrix* Strain_pl; // TN - Minkley - deviatoric plastic strain
+	Matrix* Strain_t_ip; // TN - introduced to save previous strain in all integration points
 	Matrix* e_pl;
-	Matrix* lambda_pl; //TN - Minkley - volumetric plastic strain, plastic arc length, plastic multiplier
+	Matrix* lambda_pl; // TN - Minkley - volumetric plastic strain, plastic arc length, plastic multiplier
 	Matrix* Strain; // NB - Strain tensor for reload-feature
 	// Discontinuity
 	double disp_j;
@@ -229,7 +229,7 @@ private:
 	void ComputeMatrix_RHS(const double fkt, const Matrix* p_D);
 
 	// Temporarily used variables
-	double *Sxx, *Syy, *Szz, *Sxy, *Sxz, *Syz, *pstr, *dilat;
+	double* Sxx, *Syy, *Szz, *Sxy, *Sxz, *Syz, *pstr, *dilat;
 	// 2. For enhanced strain approach
 	Matrix* BDG, *PDB, *DtD, *PeDe; // For enhanced strain element
 

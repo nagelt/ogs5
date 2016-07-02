@@ -246,7 +246,7 @@ PrimaryVariable convertPrimaryVariable(const std::string& pcs_pv_string)
 		return STRAIN_ZZ;
 	if (pcs_pv_string.compare("STRAIN_PLS") == 0)
 		return STRAIN_PLS;
-	if (pcs_pv_string.compare ("DILATANCY") == 0)
+	if (pcs_pv_string.compare("DILATANCY") == 0)
 		return DILATANCY;
 	if (pcs_pv_string.compare("CARBON1") == 0)
 		return CARBON1;

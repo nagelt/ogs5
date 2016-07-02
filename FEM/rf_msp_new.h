@@ -47,20 +47,23 @@ namespace process
 class CRFProcessDeformation;
 }
 
-namespace Minkley{
+namespace Minkley
+{
 class SolidMinkley;
 }
 
-namespace Burgers{
+namespace Burgers
+{
 class SolidBurgers;
 }
 
-namespace SolidMath{
+namespace SolidMath
+{
 class Invariants;
 }
 namespace SolidProp
 {
-typedef Eigen::Matrix<double,6,1> KVec;
+typedef Eigen::Matrix<double, 6, 1> KVec;
 class CSolidProperties
 {
 public:
@@ -150,19 +153,22 @@ public:
 	// Set value for solid reactive system - TN
 	void setSolidReactiveSystem(FiniteElement::SolidReactiveSystem reactive_system);
 
-	//Kelvin/Voigt mapping routines for 6D vectors
+	// Kelvin/Voigt mapping routines for 6D vectors
 	KVec Voigt_to_Kelvin_Stress(const std::vector<double>& voigt_stress);
 	KVec Voigt_to_Kelvin_Strain(const std::vector<double>& voigt_strain);
-	void Kelvin_to_Voigt_Stress(const KVec &kelvin_stress, std::vector<double>& voigt_stress);
-	void Kelvin_to_Voigt_Strain(const KVec &kelvin_strain, std::vector<double>& voigt_strain);
-	//general routine to get consistent tangent from local Newton iteration of material functionals
-	void ExtractConsistentTangent(const Eigen::MatrixXd &Jac, const Eigen::MatrixXd &dGdE,  const bool pivoting, Eigen::Matrix<double,6,6> &dsigdE);
-    //general local Newton routines to integrate inelastic material models
-	void LocalNewtonBurgers(const double dt, const std::vector<double>& strain_curr, std::vector<double>& stress_curr, std::vector<double>& strain_K_curr, std::vector<double>& strain_M_curr,
-							Math_Group::Matrix& Consistent_Tangent, bool Output, double Temperature);
-	void LocalNewtonMinkley(const double dt, const std::vector<double>& strain_curr, std::vector<double>& stress_curr, std::vector<double>& eps_K_curr, std::vector<double>& eps_M_curr,
-							std::vector<double>& eps_pl_curr, double& e_pl_v, double& e_pl_eff, double& lam, Math_Group::Matrix& Consistent_Tangent,
-							bool Output, double Temperature);
+	void Kelvin_to_Voigt_Stress(const KVec& kelvin_stress, std::vector<double>& voigt_stress);
+	void Kelvin_to_Voigt_Strain(const KVec& kelvin_strain, std::vector<double>& voigt_strain);
+	// general routine to get consistent tangent from local Newton iteration of material functionals
+	void ExtractConsistentTangent(const Eigen::MatrixXd& Jac, const Eigen::MatrixXd& dGdE, const bool pivoting,
+	                              Eigen::Matrix<double, 6, 6>& dsigdE);
+	// general local Newton routines to integrate inelastic material models
+	void LocalNewtonBurgers(const double dt, const std::vector<double>& strain_curr, std::vector<double>& stress_curr,
+	                        std::vector<double>& strain_K_curr, std::vector<double>& strain_M_curr,
+	                        Math_Group::Matrix& Consistent_Tangent, bool Output, double Temperature);
+	void LocalNewtonMinkley(const double dt, const std::vector<double>& strain_curr, std::vector<double>& stress_curr,
+	                        std::vector<double>& eps_K_curr, std::vector<double>& eps_M_curr,
+	                        std::vector<double>& eps_pl_curr, double& e_pl_v, double& e_pl_eff, double& lam,
+	                        Math_Group::Matrix& Consistent_Tangent, bool Output, double Temperature);
 
 private:
 	// CMCD
@@ -186,8 +192,8 @@ private:
 	double bishop_model_value; // 05.2011 WX
 	double threshold_dev_str; // 12.2012 WX
 	double grav_const; // WW
-	int grav_curve_id;                    //NB
-	bool gravity_ramp;					  //NB
+	int grav_curve_id; // NB
+	bool gravity_ramp; // NB
 
 	Math_Group::Matrix* data_Density;
 	//
