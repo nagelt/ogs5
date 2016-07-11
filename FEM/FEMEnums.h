@@ -134,7 +134,7 @@ enum PrimaryVariable
 	STRAIN_ZZ, // Output
 	STRAIN_PLS, // Output
 	DILATANCY,
-	LOC_RES,
+	LOCAL_RES,
 	STRESS_XX, // IC
 	STRESS_XY, // IC
 	STRESS_XZ, // IC

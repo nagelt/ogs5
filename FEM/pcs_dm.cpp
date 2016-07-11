@@ -2067,7 +2067,6 @@ void CRFProcessDeformation::Extropolation_GaussValue()
 	Idx_Stress[NS] = GetNodeValueIndex("DILATANCY");
 	NS++;
 	Idx_Stress[NS] = GetNodeValueIndex("LOCAL_RES");
-	NS++;
 
 	// NB, TN
 	int stressPrincipleIndices[3];

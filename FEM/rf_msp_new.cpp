@@ -1682,7 +1682,7 @@ void CSolidProperties::ExtractConsistentTangent(const Eigen::MatrixXd& Jac, cons
 void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<double>& strain_curr,
                                           std::vector<double>& stress_curr, std::vector<double>& strain_K_curr,
                                           std::vector<double>& strain_M_curr, Math_Group::Matrix& Consistent_Tangent,
-                                          bool Output, double Temperature, double local_res)
+                                          bool Output, double Temperature, double& local_res)
 {
 	// stress, strain, internal variable
 	KVec sig_j, eps_K_j, eps_M_j;
@@ -1814,7 +1814,7 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
                                           std::vector<double>& eps_M_curr, std::vector<double>& eps_pl_curr,
                                           double& e_pl_v, double& e_pl_eff, double& lam,
                                           Math_Group::Matrix& Consistent_Tangent, bool Output, double Temperature,
-                                          double local_res)
+                                          double& local_res)
 {
 	// stress, strain, internal variable
 	KVec sig_j, eps_K_j, eps_M_j, eps_pl_j;
@@ -1949,6 +1949,7 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		//		if (counter == counter_max)
 		//			std::cout << "WARNING: Maximum iteration number needed in LocalNewtonMinkley (VP). Convergence not "
 		//			             "guaranteed. Residual = " << res_loc_p.norm() << std::endl;
+		local_res = res_loc_p.norm();
 	}
 	else
 	{
@@ -1963,11 +1964,11 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		// guaranteed."
 		//			          << std::endl;
 		//			          << std::endl;local_res = res_loc.norm();
+		local_res = res_loc.norm();
 	}
 	// add hydrostatic part to stress and tangent
 	sig_j *= material_minkley->GM;
 	dsigdE *= material_minkley->GM;
-	local_res = res_loc.norm();
 	// Sort into Consistent Tangent matrix for global Newton iteration and into standard OGS arrays
 	SolidMath::Kelvin_to_Voigt_Stress(sig_j, stress_curr);
 	SolidMath::Kelvin_to_Voigt_Strain(eps_K_j, eps_K_curr);
