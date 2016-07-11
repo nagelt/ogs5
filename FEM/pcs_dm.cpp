@@ -1035,7 +1035,7 @@ void CRFProcessDeformation::InitGauss(void)
 	double OCR = 1.0;
 	n_dom = k = 0;
 
-	int Idx_Strain[9];
+	int Idx_Strain[10];
 
 	int NS = 4;
 	Idx_Strain[0] = GetNodeValueIndex("STRAIN_XX");
@@ -1051,6 +1051,7 @@ void CRFProcessDeformation::InitGauss(void)
 	}
 	Idx_Strain[NS] = GetNodeValueIndex("STRAIN_PLS");
 	Idx_Strain[NS + 1] = GetNodeValueIndex("DILATANCY");
+	Idx_Strain[NS + 2] = GetNodeValueIndex("LOCAL_RES");
 
 	for (j = 0; j < NS; j++)
 		stress_ic[j] = NULL;
@@ -1246,7 +1247,7 @@ void CRFProcessDeformation::CreateInitialState4Excavation()
 {
 	size_t i;
 	int j;
-	int Idx_Strain[9];
+	int Idx_Strain[10];
 	int NS = 4;
 	if (num_type_name.find("EXCAVATION") != 0)
 		return;
@@ -1264,6 +1265,7 @@ void CRFProcessDeformation::CreateInitialState4Excavation()
 	}
 	Idx_Strain[NS] = GetNodeValueIndex("STRAIN_PLS");
 	Idx_Strain[NS + 1] = GetNodeValueIndex("DILATANCY");
+	Idx_Strain[NS + 2] = GetNodeValueIndex("LOCAL_RES");
 	// For excavation simulation. Moved here on 05.09.2007 WW
 	if (!_has_initial_stress_data)
 	{
@@ -2036,7 +2038,7 @@ void CRFProcessDeformation::Extropolation_GaussValue()
 {
 	int k, NS;
 	long i = 0;
-	int Idx_Stress[8];
+	int Idx_Stress[9];
 	const long LowOrderNodes = m_msh->GetNodesNumber(false);
 	MeshLib::CElem* elem = NULL;
 
@@ -2063,6 +2065,8 @@ void CRFProcessDeformation::Extropolation_GaussValue()
 	Idx_Stress[NS] = GetNodeValueIndex("STRAIN_PLS");
 	NS++;
 	Idx_Stress[NS] = GetNodeValueIndex("DILATANCY");
+	NS++;
+	Idx_Stress[NS] = GetNodeValueIndex("LOCAL_RES");
 	NS++;
 
 	// NB, TN

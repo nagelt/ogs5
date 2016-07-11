@@ -248,6 +248,8 @@ PrimaryVariable convertPrimaryVariable(const std::string& pcs_pv_string)
 		return STRAIN_PLS;
 	if (pcs_pv_string.compare("DILATANCY") == 0)
 		return DILATANCY;
+	if (pcs_pv_string.compare("LOC_RES") == 0)
+		return LOC_RES;
 	if (pcs_pv_string.compare("CARBON1") == 0)
 		return CARBON1;
 	if (pcs_pv_string.compare("WATER1") == 0)
@@ -342,6 +344,8 @@ std::string convertPrimaryVariableToString(PrimaryVariable pcs_pv)
 		return "STRAIN_PLS";
 	if (pcs_pv == DILATANCY)
 		return "DILATANCY";
+	if (pcs_pv == LOC_RES)
+		return "LOC_RES";
 	if (pcs_pv == ACCELERATION_X1)
 		return "ACCELERATION_X1";
 	if (pcs_pv == ACCELERATION_Y1)

@@ -196,6 +196,7 @@ CFiniteElementVec::CFiniteElementVec(process::CRFProcessDeformation* dm_pcs, con
 			Sxy = new double[9];
 			pstr = new double[9];
 			dilat = new double[9];
+			loc_nr_res = new double[9];
 
 			Sxz = NULL;
 			Syz = NULL;
@@ -234,6 +235,7 @@ CFiniteElementVec::CFiniteElementVec(process::CRFProcessDeformation* dm_pcs, con
 			Syz = new double[20];
 			pstr = new double[20];
 			dilat = new double[20];
+			loc_nr_res = new double[20];
 
 			// Indecex in nodal value table
 			Idx_Strain[4] = pcs->GetNodeValueIndex("STRAIN_XZ");
@@ -390,6 +392,7 @@ CFiniteElementVec::~CFiniteElementVec()
 	delete[] Sxy;
 	delete[] pstr;
 	delete[] dilat;
+	delete[] loc_nr_res;
 	delete[] Idx_Strain;
 	delete[] Idx_Stress;
 	delete[] strain_ne;
@@ -464,6 +467,7 @@ CFiniteElementVec::~CFiniteElementVec()
 	Syz = NULL;
 	pstr = NULL;
 	dilat = NULL;
+	loc_nr_res = NULL;
 	//  10.11.2010. WW
 	if (X0)
 		delete[] X0;
@@ -2471,7 +2475,9 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				//                    output = true;
 				// Pass as 6D vectors, i.e. set stress and strain [4] and [5] to zero for 2D and AXI as well as
 				// strain[3] to zero for 2D (plane strain)
-				smat->LocalNewtonBurgers(dt, strain_curr, stress_curr, eps_K_curr, eps_M_curr, ConsD, output, t1);
+				double local_res;
+				smat->LocalNewtonBurgers(dt, strain_curr, stress_curr, eps_K_curr, eps_M_curr, ConsD, output, t1,
+				                         local_res);
 
 				// Then update (and reduce for 2D) stress increment vector and reduce (for 2D) ConsistDep, update
 				// internal variables
@@ -2483,6 +2489,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 						(*eleV_DM->Strain_Kel)(compnt, gp) = eps_K_curr[compnt];
 						(*eleV_DM->Strain_Max)(compnt, gp) = eps_M_curr[compnt];
 						(*eleV_DM->Strain_t_ip)(compnt, gp) = strain_curr[compnt];
+						(*eleV_DM->ev_loc_nr_res)(gp) = local_res;
 					}
 					for (int compnt2(0); compnt2 < ns; compnt2++)
 						(*De)(compnt, compnt2) = ConsD(compnt, compnt2);
@@ -2529,18 +2536,9 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				//                    output = true;
 				// Pass as 6D vectors, i.e. set stress and strain [4] and [5] to zero for 2D and AXI as well as
 				// strain[3] to zero for 2D (plane strain)
-				smat->LocalNewtonMinkley(dt,
-				                         strain_curr,
-				                         stress_curr,
-				                         eps_K_curr,
-				                         eps_M_curr,
-				                         eps_pl_curr,
-				                         e_pl_v,
-				                         e_pl_eff,
-				                         lam,
-				                         ConsD,
-				                         output,
-				                         t1);
+				double local_res;
+				smat->LocalNewtonMinkley(dt, strain_curr, stress_curr, eps_K_curr, eps_M_curr, eps_pl_curr, e_pl_v,
+				                         e_pl_eff, lam, ConsD, output, t1, local_res);
 
 				// Then update (and reduce for 2D) stress increment vector and reduce (for 2D) ConsistDep, update
 				// internal variables
@@ -2564,6 +2562,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 					(*eleV_DM->e_pl)(gp) = e_pl_v;
 					(*eleV_DM->lambda_pl)(gp) = lam;
 					(*eleV_DM->pStrain)(gp) = e_pl_eff;
+					(*eleV_DM->ev_loc_nr_res)(gp) = local_res;
 				}
 			}
 
@@ -2864,6 +2863,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			idx_pls = pcs->GetNodeValueIndex("STRAIN_PLS");
 		if (eleV_DM->e_pl)
 			idx_dilat = pcs->GetNodeValueIndex("DILATANCY");
+		if (eleV_DM->ev_loc_nr_res)
+			idx_loc_nr_res = pcs->GetNodeValueIndex("LOCAL_RES");
 		//
 		MshElemType::type ElementType = MeshElement->GetElementType();
 		SetIntegrationPointNumber(ElementType);
@@ -2892,6 +2893,10 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				dilat[i] = (*eleV_DM->e_pl)(gp);
 			else
 				dilat[i] = 0.0;
+			if (eleV_DM->ev_loc_nr_res)
+				loc_nr_res[i] = (*eleV_DM->ev_loc_nr_res)(gp);
+			else
+				loc_nr_res[i] = 0.0;
 			if (ele_dim == 3)
 			{
 				Sxz[i] = (*eleV_DM->Stress)(4, gp);
@@ -2916,9 +2921,9 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 		// Mapping Gauss point strains to nodes and update nodes
 		// strains:
 		//---------------------------------------------------------
-		double ESxx, ESyy, ESzz, ESxy, ESxz, ESyz, Pls, Dil;
-		double avgESxx, avgESyy, avgESzz, avgESxy, avgESxz, avgESyz, avgPls, avgDilat;
-		avgESxx = avgESyy = avgESzz = avgESxy = avgESxz = avgESyz = avgPls = avgDilat = 0.0;
+		double ESxx, ESyy, ESzz, ESxy, ESxz, ESyz, Pls, Dil, Res;
+		double avgESxx, avgESyy, avgESzz, avgESxy, avgESxz, avgESyz, avgPls, avgDilat, avgRes;
+		avgESxx = avgESyy = avgESzz = avgESxy = avgESxz = avgESyz = avgPls = avgDilat = avgRes = 0.0;
 		if (this->GetExtrapoMethod() == ExtrapolationMethod::EXTRAPO_AVERAGE)
 		{
 			// average
@@ -2930,12 +2935,13 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			avgESyz = CalcAverageGaussPointValues(Syz);
 			avgPls = CalcAverageGaussPointValues(pstr);
 			avgDilat = CalcAverageGaussPointValues(dilat);
+			avgRes = CalcAverageGaussPointValues(loc_nr_res);
 		}
 
 		ConfigShapefunction(ElementType);
 		for (int i = 0; i < nnodes; i++)
 		{
-			ESxx = ESyy = ESzz = ESxy = ESxz = ESyz = Pls = Dil = 0.0;
+			ESxx = ESyy = ESzz = ESxy = ESxz = ESyz = Pls = Dil = Res = 0.0;
 
 			// Calculate values at nodes
 			if (this->GetExtrapoMethod() == ExtrapolationMethod::EXTRAPO_LINEAR)
@@ -2954,6 +2960,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 					ESzz += Szz[j] * dbuff0[k];
 					Pls += pstr[j] * dbuff0[k];
 					Dil += dilat[j] * dbuff0[k];
+					Res += loc_nr_res[j] * dbuff0[k];
 					if (ele_dim == 3)
 					{
 						ESxz += Sxz[j] * dbuff0[k];
@@ -2970,6 +2977,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				ESzz = avgESzz;
 				Pls = avgPls;
 				Dil = avgDilat;
+				Res = avgRes;
 				if (ele_dim == 3)
 				{
 					ESxz = avgESxz;
@@ -2984,6 +2992,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			ESzz /= dbuff[i];
 			Pls /= dbuff[i];
 			Dil /= dbuff[i];
+			Res /= dbuff[i];
 			//
 			long node_i = nodes[i];
 			ESxx += pcs->GetNodeValue(node_i, Idx_Stress[0]);
@@ -2994,6 +3003,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				Pls += pcs->GetNodeValue(node_i, idx_pls);
 			if (eleV_DM->e_pl)
 				Dil += pcs->GetNodeValue(node_i, idx_dilat);
+			if (eleV_DM->ev_loc_nr_res)
+				Res += pcs->GetNodeValue(node_i, idx_loc_nr_res);
 
 			pcs->SetNodeValue(node_i, Idx_Stress[0], ESxx);
 			pcs->SetNodeValue(node_i, Idx_Stress[1], ESyy);
@@ -3003,6 +3014,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				pcs->SetNodeValue(node_i, idx_pls, fabs(Pls));
 			if (eleV_DM->e_pl)
 				pcs->SetNodeValue(node_i, idx_dilat, Dil);
+			if (eleV_DM->ev_loc_nr_res)
+				pcs->SetNodeValue(node_i, idx_loc_nr_res, Res);
 
 			if (ele_dim == 3)
 			{
@@ -3846,6 +3859,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 		Strain_pl = NULL;
 		e_pl = NULL;
 		lambda_pl = NULL;
+		ev_loc_nr_res = NULL;
 
 		if (ele_dim == 2)
 			LengthBS = 4;
@@ -3909,6 +3923,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			*Strain_Max = 0.0;
 			Strain_t_ip = new Matrix(6, NGPoints);
 			*Strain_t_ip = 0.0;
+			ev_loc_nr_res = new Matrix(NGPoints);
+			*ev_loc_nr_res = 0.;
 		}
 
 		if (sdp->CreepModel() == 1002) // Minkley
@@ -3930,6 +3946,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			*pStrain = 0.;
 			lambda_pl = new Matrix(NGPoints);
 			*lambda_pl = 0.;
+			ev_loc_nr_res = new Matrix(NGPoints);
+			*ev_loc_nr_res = 0.;
 		}
 		Strain = new Matrix(6, NGPoints);
 		*Strain = 0.0;
@@ -3974,6 +3992,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			e_pl->Write_BIN(os);
 		if (lambda_pl)
 			lambda_pl->Write_BIN(os);
+		if (ev_loc_nr_res)
+			ev_loc_nr_res->Write_BIN(os);
 		if (MatP)
 			MatP->Write_BIN(os);
 		if (prep0)
@@ -4013,6 +4033,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			e_pl->Read_BIN(is);
 		if (lambda_pl)
 			lambda_pl->Read_BIN(is);
+		if (ev_loc_nr_res)
+			ev_loc_nr_res->Read_BIN(is);
 		if (MatP)
 			MatP->Read_BIN(is);
 		if (prep0)
@@ -4104,6 +4126,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			delete e_pl;
 		if (lambda_pl)
 			delete lambda_pl;
+		if (ev_loc_nr_res)
+			delete ev_loc_nr_res;
 
 		NodesOnPath = NULL;
 		orientation = NULL;
@@ -4125,6 +4149,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 		Strain_t_ip = NULL;
 		e_pl = NULL;
 		lambda_pl = NULL;
+		ev_loc_nr_res = NULL;
 	}
 
 	/***************************************************************************
