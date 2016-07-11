@@ -76,8 +76,8 @@ void SolidMinkley::UpdateMinkleyProperties(double s_eff, const double eps_p_eff,
 	etaM *= Bt * std::exp(Q / (PhysicalConstant::IdealGasConstant * Temperature));
 
 	coh = coh0 * (1. + eps_p_eff * hard); // linear isotropic hardening/softening
-	if (etaM / etaM0 < 1.e-2)
-		std::cout << "WARNING: Maxwell viscosity sank to 100th of original value." << std::endl;
+//	if (etaM / etaM0 < 1.e-2)
+//		std::cout << "WARNING: Maxwell viscosity sank to 100th of original value." << std::endl;
 }
 
 /**************************************************************************
