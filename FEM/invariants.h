@@ -21,7 +21,6 @@ static const Eigen::Matrix<double, 6, 6> P_dev(Initialise_P_dev()); // deviatori
 static const Eigen::Matrix<double, 6, 6> P_sph(Initialise_P_sph()); // spherical projection matrix
 static const KVec ivec(Initialise_ivec()); // Kelvin mapping of 2nd order identity
 
-
 // Kelvin/Voigt mapping routines for 6D vectors
 KVec Voigt_to_Kelvin_Stress(const std::vector<double>& voigt_stress);
 KVec Voigt_to_Kelvin_Strain(const std::vector<double>& voigt_strain);

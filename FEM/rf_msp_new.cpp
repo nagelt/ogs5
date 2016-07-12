@@ -1643,7 +1643,6 @@ double CSolidProperties::Kronecker(const int ii, const int jj)
 	return delta;
 }
 
-
 /**************************************************************************
    FEMLib-Method: CSolidProperties::ExtractConsistentTangent()
    Task: general routine to get 6x6 consistent tangent from local Newton iteration of material functionals

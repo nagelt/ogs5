@@ -31,7 +31,9 @@ TEST(SolidProps, EffectiveStress)
 
 	// stress values
 	std::vector<double> stress(6);
-	stress[0] = 0.01; stress[1] = 0.02; stress[2] = 0.03;
+	stress[0] = 0.01;
+	stress[1] = 0.02;
+	stress[2] = 0.03;
 	stress[3] = 0.04; stress[4] = 0.05; stress[5] = 0.06;
 	sig = SolidMath::Voigt_to_Kelvin_Stress(stress); // Kelvin mapping
 	sigd = SolidMath::P_dev * sig;
