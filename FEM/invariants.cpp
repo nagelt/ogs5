@@ -35,9 +35,9 @@ Eigen::Matrix<double, 6, 6> Initialise_P_sph()
 	return P;
 }
 
-Eigen::Matrix<double, 6, 1> Initialise_ivec()
+KVec Initialise_ivec()
 {
-	Eigen::Matrix<double, 6, 1> I;
+	KVec I;
 	for (size_t j = 0; j < 3; j++)
 	{
 		I(j) = 1.;
@@ -46,8 +46,90 @@ Eigen::Matrix<double, 6, 1> Initialise_ivec()
 	return I;
 }
 
+/**************************************************************************
+   Voigt_to_Kelvin_Strain
+   Task: Maps a strain vector in Voigt notation into on in Kelvin notation
+   This is an auxilliary routine that will not be needed when the entire FE
+   code is set up in Kelvin notation
+   Programing:
+   06/2015 TN Implementation
+**************************************************************************/
+KVec Voigt_to_Kelvin_Strain(const std::vector<double>& voigt_strain)
+{
+	KVec kelvin_strain;
+	for (size_t i = 0; i < 3; i++)
+	{
+		// Normal components
+		kelvin_strain(i) = voigt_strain[i];
+		// Shear components
+		kelvin_strain(i + 3) = voigt_strain[i + 3] / sqrt(2.);
+	}
+	return kelvin_strain;
+}
+
+/**************************************************************************
+   Voigt_to_Kelvin_Stress
+   Task: Maps a stress vector in Voigt notation into on in Kelvin notation
+   This is an auxilliary routine that will not be needed when the entire FE
+   code is set up in Kelvin notation
+   Programing:
+   06/2015 TN Implementation
+**************************************************************************/
+KVec Voigt_to_Kelvin_Stress(const std::vector<double>& voigt_stress)
+{
+	KVec kelvin_stress;
+	for (size_t i = 0; i < 3; i++)
+	{
+		// Normal components
+		kelvin_stress(i) = voigt_stress[i];
+		// Shear components
+		kelvin_stress(i + 3) = voigt_stress[i + 3] * sqrt(2.);
+	}
+	return kelvin_stress;
+}
+
+/**************************************************************************
+   Kelvin_to_Voigt_Strain()
+   Task: Maps a strain vector in Kelvin notation into on in Voigt notation
+   This is an auxilliary routine that will not be needed when the entire FE
+   code is set up in Kelvin notation
+   Programing:
+   06/2015 TN Implementation
+**************************************************************************/
+void Kelvin_to_Voigt_Strain(const KVec& kelvin_strain, std::vector<double>& voigt_strain)
+{
+	for (size_t i = 0; i < 3; i++)
+	{
+		// Normal components
+		voigt_strain[i] = kelvin_strain(i);
+		// Shear components
+		voigt_strain[i + 3] = kelvin_strain(i + 3) * sqrt(2.);
+	}
+	return;
+}
+
+/**************************************************************************
+   Kelvin_to_Voigt_Stress()
+   Task: Maps a stress vector in Kelvin notation into on in Voigt notation
+   This is an auxilliary routine that will not be needed when the entire FE
+   code is set up in Kelvin notation
+   Programing:
+   06/2015 TN Implementation
+**************************************************************************/
+void Kelvin_to_Voigt_Stress(const KVec& kelvin_stress, std::vector<double>& voigt_stress)
+{
+	for (size_t i = 0; i < 3; i++)
+	{
+		// Normal components
+		voigt_stress[i] = kelvin_stress(i);
+		// Shear components
+		voigt_stress[i + 3] = kelvin_stress(i + 3) / sqrt(2.);
+	}
+	return;
+}
+
 // Maps a 6D Kelvin vector back into 3D Tensor coordinates
-Eigen::Matrix<double, 3, 3> KelvinVectorToTensor(const Eigen::Matrix<double, 6, 1>& vec)
+Eigen::Matrix<double, 3, 3> KelvinVectorToTensor(const KVec& vec)
 {
 	Eigen::Matrix<double, 3, 3> tens;
 	tens(0, 0) = vec(0);
@@ -60,9 +142,9 @@ Eigen::Matrix<double, 3, 3> KelvinVectorToTensor(const Eigen::Matrix<double, 6, 
 }
 
 // Maps a 2nd order 3D Tensor into Kelvin representation
-Eigen::Matrix<double, 6, 1> TensorToKelvinVector(const Eigen::Matrix<double, 3, 3>& tens)
+KVec TensorToKelvinVector(const Eigen::Matrix<double, 3, 3>& tens)
 {
-	Eigen::Matrix<double, 6, 1> vec;
+	KVec vec;
 	vec(0) = tens(0, 0);
 	vec(1) = tens(1, 1);
 	vec(2) = tens(2, 2);
@@ -75,7 +157,7 @@ Eigen::Matrix<double, 6, 1> TensorToKelvinVector(const Eigen::Matrix<double, 3, 
 // Task: calculates second deviatoric invariant. Note that this routine requires a
 // Kelvin mapped DEVIATORIC vector.
 // A deviatoric mapping was not done here in order to avoid unnecessary calculations
-double CalJ2(const Eigen::Matrix<double, 6, 1>& dev_vec)
+double CalJ2(const KVec& dev_vec)
 {
 	double s(0.);
 	s = dev_vec.transpose() * dev_vec; // Kelvin mapping, deviator
@@ -84,7 +166,7 @@ double CalJ2(const Eigen::Matrix<double, 6, 1>& dev_vec)
 
 // Task: calculates effective stress. Note that this routine requires a
 // Kelvin mapped DEVIATORIC stress vector
-double CalEffectiveStress(const Eigen::Matrix<double, 6, 1>& dev_stress)
+double CalEffectiveStress(const KVec& dev_stress)
 {
 	double s(0.);
 	s = 3. * CalJ2(dev_stress); // Kelvin mapped deviatoric stress has to be used
@@ -94,7 +176,7 @@ double CalEffectiveStress(const Eigen::Matrix<double, 6, 1>& dev_stress)
 // Task: calculates third deviatoric invariant. Note that this routine requires a
 // Kelvin mapped DEVIATORIC vector
 // A deviatoric mapping was not done here in order to avoid unnecessary calculations
-double CalJ3(const Eigen::Matrix<double, 6, 1>& dev_vec)
+double CalJ3(const KVec& dev_vec)
 {
 	Eigen::Matrix<double, 3, 3> tens;
 	tens = KelvinVectorToTensor(dev_vec); // TN: Not strictly necessary. Can be written explicitly for vector
@@ -104,7 +186,7 @@ double CalJ3(const Eigen::Matrix<double, 6, 1>& dev_vec)
 
 // Takes 2nd Order tensor in Kelvin representation and returns its
 // inverse in Kelvin representation
-Eigen::Matrix<double, 6, 1> InvertVector(const Eigen::Matrix<double, 6, 1>& vec)
+KVec InvertVector(const KVec& vec)
 {
 	Eigen::Matrix<double, 3, 3> tens = KelvinVectorToTensor(vec);
 	return TensorToKelvinVector(tens.inverse());
@@ -113,7 +195,7 @@ Eigen::Matrix<double, 6, 1> InvertVector(const Eigen::Matrix<double, 6, 1>& vec)
 // calculates Lode angle. Note that this routine requires a
 // Kelvin mapped DEVIATORIC vector
 // A deviatoric mapping was not done here in order to avoid unnecessary calculations
-double CalLodeAngle(const Eigen::Matrix<double, 6, 1>& dev_vec)
+double CalLodeAngle(const KVec& dev_vec)
 {
 	const double J2(CalJ2(dev_vec));
 	double theta, thetaR;
@@ -129,7 +211,7 @@ double CalLodeAngle(const Eigen::Matrix<double, 6, 1>& dev_vec)
 }
 
 // calculates first invariant (trace) of a vector-mapped 2nd order tensor.
-double CalI1(const Eigen::Matrix<double, 6, 1>& vec)
+double CalI1(const KVec& vec)
 {
 	return vec(0) + vec(1) + vec(2);
 }

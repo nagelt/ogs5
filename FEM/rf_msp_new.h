@@ -153,11 +153,6 @@ public:
 	// Set value for solid reactive system - TN
 	void setSolidReactiveSystem(FiniteElement::SolidReactiveSystem reactive_system);
 
-	// Kelvin/Voigt mapping routines for 6D vectors
-	KVec Voigt_to_Kelvin_Stress(const std::vector<double>& voigt_stress);
-	KVec Voigt_to_Kelvin_Strain(const std::vector<double>& voigt_strain);
-	void Kelvin_to_Voigt_Stress(const KVec& kelvin_stress, std::vector<double>& voigt_stress);
-	void Kelvin_to_Voigt_Strain(const KVec& kelvin_strain, std::vector<double>& voigt_strain);
 	// general routine to get consistent tangent from local Newton iteration of material functionals
 	void ExtractConsistentTangent(const Eigen::MatrixXd& Jac, const Eigen::MatrixXd& dGdE, const bool pivoting,
 	                              Eigen::Matrix<double, 6, 6>& dsigdE);

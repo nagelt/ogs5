@@ -1643,87 +1643,6 @@ double CSolidProperties::Kronecker(const int ii, const int jj)
 	return delta;
 }
 
-/**************************************************************************
-   FEMLib-Method: CSolidProperties::Voigt_to_Kelvin_Strain
-   Task: Maps a strain vector in Voigt notation into on in Kelvin notation
-   This is an auxilliary routine that will not be needed when the entire FE
-   code is set up in Kelvin notation
-   Programing:
-   06/2015 TN Implementation
-**************************************************************************/
-KVec CSolidProperties::Voigt_to_Kelvin_Strain(const std::vector<double>& voigt_strain)
-{
-	KVec kelvin_strain;
-	for (size_t i = 0; i < 3; i++)
-	{
-		// Normal components
-		kelvin_strain(i) = voigt_strain[i];
-		// Shear components
-		kelvin_strain(i + 3) = voigt_strain[i + 3] / sqrt(2.);
-	}
-	return kelvin_strain;
-}
-
-/**************************************************************************
-   FEMLib-Method: CSolidProperties::Voigt_to_Kelvin_Stress
-   Task: Maps a stress vector in Voigt notation into on in Kelvin notation
-   This is an auxilliary routine that will not be needed when the entire FE
-   code is set up in Kelvin notation
-   Programing:
-   06/2015 TN Implementation
-**************************************************************************/
-KVec CSolidProperties::Voigt_to_Kelvin_Stress(const std::vector<double>& voigt_stress)
-{
-	KVec kelvin_stress;
-	for (size_t i = 0; i < 3; i++)
-	{
-		// Normal components
-		kelvin_stress(i) = voigt_stress[i];
-		// Shear components
-		kelvin_stress(i + 3) = voigt_stress[i + 3] * sqrt(2.);
-	}
-	return kelvin_stress;
-}
-
-/**************************************************************************
-   FEMLib-Method: CSolidProperties::Kelvin_to_Voigt_Strain()
-   Task: Maps a strain vector in Kelvin notation into on in Voigt notation
-   This is an auxilliary routine that will not be needed when the entire FE
-   code is set up in Kelvin notation
-   Programing:
-   06/2015 TN Implementation
-**************************************************************************/
-void CSolidProperties::Kelvin_to_Voigt_Strain(const KVec& kelvin_strain, std::vector<double>& voigt_strain)
-{
-	for (size_t i = 0; i < 3; i++)
-	{
-		// Normal components
-		voigt_strain[i] = kelvin_strain(i);
-		// Shear components
-		voigt_strain[i + 3] = kelvin_strain(i + 3) * sqrt(2.);
-	}
-	return;
-}
-
-/**************************************************************************
-   FEMLib-Method: CSolidProperties::Kelvin_to_Voigt_Stress()
-   Task: Maps a stress vector in Kelvin notation into on in Voigt notation
-   This is an auxilliary routine that will not be needed when the entire FE
-   code is set up in Kelvin notation
-   Programing:
-   06/2015 TN Implementation
-**************************************************************************/
-void CSolidProperties::Kelvin_to_Voigt_Stress(const KVec& kelvin_stress, std::vector<double>& voigt_stress)
-{
-	for (size_t i = 0; i < 3; i++)
-	{
-		// Normal components
-		voigt_stress[i] = kelvin_stress(i);
-		// Shear components
-		voigt_stress[i + 3] = kelvin_stress(i + 3) / sqrt(2.);
-	}
-	return;
-}
 
 /**************************************************************************
    FEMLib-Method: CSolidProperties::ExtractConsistentTangent()
@@ -1773,9 +1692,9 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<dou
 
 	// initialisation of Kelvin vectors
 	// Note: Can be done in one loop instead of 5 if done right here.
-	const KVec eps_i(Voigt_to_Kelvin_Strain(strain_curr));
-	const KVec eps_K_t(Voigt_to_Kelvin_Strain(strain_K_curr));
-	const KVec eps_M_t(Voigt_to_Kelvin_Strain(strain_M_curr));
+	const KVec eps_i(SolidMath::Voigt_to_Kelvin_Strain(strain_curr));
+	const KVec eps_K_t(SolidMath::Voigt_to_Kelvin_Strain(strain_K_curr));
+	const KVec eps_M_t(SolidMath::Voigt_to_Kelvin_Strain(strain_M_curr));
 	eps_M_j = eps_M_t;
 	eps_K_j = eps_K_t;
 
@@ -1867,9 +1786,9 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<dou
 	dsigdE = material_burgers->GM * dsigdE * SolidMath::P_dev + 3. * material_burgers->KM * SolidMath::P_sph;
 
 	// Sort into Consistent Tangent matrix for global Newton iteration and into standard OGS arrays
-	Kelvin_to_Voigt_Stress(sig_j, stress_curr);
-	Kelvin_to_Voigt_Strain(eps_K_j, strain_K_curr);
-	Kelvin_to_Voigt_Strain(eps_M_j, strain_M_curr);
+	SolidMath::Kelvin_to_Voigt_Stress(sig_j, stress_curr);
+	SolidMath::Kelvin_to_Voigt_Strain(eps_K_j, strain_K_curr);
+	SolidMath::Kelvin_to_Voigt_Strain(eps_M_j, strain_M_curr);
 	for (size_t i = 0; i < 3; i++)
 	{
 		for (size_t j = 0; j < 3; j++)
@@ -1910,10 +1829,10 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 
 	// initialisation of Kelvin vectors
 	// Note: Can be done in one loop instead of 5 if done right here.
-	const KVec eps_i(Voigt_to_Kelvin_Strain(strain_curr));
-	const KVec eps_K_t(Voigt_to_Kelvin_Strain(eps_K_curr));
-	const KVec eps_M_t(Voigt_to_Kelvin_Strain(eps_M_curr));
-	const KVec eps_pl_t(Voigt_to_Kelvin_Strain(eps_pl_curr));
+	const KVec eps_i(SolidMath::Voigt_to_Kelvin_Strain(strain_curr));
+	const KVec eps_K_t(SolidMath::Voigt_to_Kelvin_Strain(eps_K_curr));
+	const KVec eps_M_t(SolidMath::Voigt_to_Kelvin_Strain(eps_M_curr));
+	const KVec eps_pl_t(SolidMath::Voigt_to_Kelvin_Strain(eps_pl_curr));
 	eps_M_j = eps_M_t;
 	eps_K_j = eps_K_t;
 	eps_pl_j = eps_pl_t;
@@ -2020,7 +1939,7 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		}
 		// dGdE matrix and dsigdE matrix
 		Eigen::Matrix<double, 27, 6> dGdE;
-		Kelvin_to_Voigt_Strain(eps_pl_j, eps_pl_curr);
+		SolidMath::Kelvin_to_Voigt_Strain(eps_pl_j, eps_pl_curr);
 		// Calculate dGdE for time step
 		material_minkley->CalEPdGdE(dGdE);
 		// get dsigdE matrix
@@ -2044,9 +1963,9 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 	dsigdE *= material_minkley->GM0;
 
 	// Sort into Consistent Tangent matrix for global Newton iteration and into standard OGS arrays
-	Kelvin_to_Voigt_Stress(sig_j, stress_curr);
-	Kelvin_to_Voigt_Strain(eps_K_j, eps_K_curr);
-	Kelvin_to_Voigt_Strain(eps_M_j, eps_M_curr);
+	SolidMath::Kelvin_to_Voigt_Stress(sig_j, stress_curr);
+	SolidMath::Kelvin_to_Voigt_Strain(eps_K_j, eps_K_curr);
+	SolidMath::Kelvin_to_Voigt_Strain(eps_M_j, eps_M_curr);
 	// plastic strain dealt with further up
 	for (size_t i = 0; i < 3; i++)
 	{

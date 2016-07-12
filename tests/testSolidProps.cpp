@@ -33,7 +33,7 @@ TEST(SolidProps, EffectiveStress)
 	std::vector<double> stress(6);
 	stress[0] = 0.01; stress[1] = 0.02; stress[2] = 0.03;
 	stress[3] = 0.04; stress[4] = 0.05; stress[5] = 0.06;
-	sig = solid.Voigt_to_Kelvin_Stress(stress); // Kelvin mapping
+	sig = SolidMath::Voigt_to_Kelvin_Stress(stress); // Kelvin mapping
 	sigd = SolidMath::P_dev * sig;
 
 	const double s_eff(SolidMath::CalEffectiveStress(sig));
@@ -133,7 +133,7 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 	strain_bc[3] = 0.04 * 2.;
 	strain_bc[4] = 0.05 * 2.;
 	strain_bc[5] = 0.06 * 2.;
-	eps_i = solid.Voigt_to_Kelvin_Strain(strain_bc);
+	eps_i = SolidMath::Voigt_to_Kelvin_Strain(strain_bc);
 
 	epsd_i = SolidMath::P_dev * eps_i;
 
@@ -298,7 +298,7 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 	strain_bc[3] = 0.04 * 2.;
 	strain_bc[4] = 0.05 * 2.;
 	strain_bc[5] = 0.06 * 2.;
-	eps_i = solid.Voigt_to_Kelvin_Strain(strain_bc);
+	eps_i = SolidMath::Voigt_to_Kelvin_Strain(strain_bc);
 	eps_i *= 0.01;
 
 	epsd_i = SolidMath::P_dev * eps_i;
@@ -472,7 +472,7 @@ TEST(SolidProps, MinkleyFullResidual)
 	strain_bc[3] = 0.04 * 2.;
 	strain_bc[4] = 0.05 * 2.;
 	strain_bc[5] = 0.06 * 2.;
-	eps_i = solid.Voigt_to_Kelvin_Strain(strain_bc);
+	eps_i = SolidMath::Voigt_to_Kelvin_Strain(strain_bc);
 	eps_i *= -0.01;
 
 	epsd_i = SolidMath::P_dev * eps_i;
@@ -588,7 +588,7 @@ TEST(SolidProps, MinkleyFullJacobian)
 	strain_bc[3] = 0.04 * 2.;
 	strain_bc[4] = 0.05 * 2.;
 	strain_bc[5] = 0.06 * 2.;
-	eps_i = solid.Voigt_to_Kelvin_Strain(strain_bc);
+	eps_i = SolidMath::Voigt_to_Kelvin_Strain(strain_bc);
 	eps_i *= -0.01;
 
 	epsd_i = SolidMath::P_dev * eps_i;
