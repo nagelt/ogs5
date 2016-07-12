@@ -108,7 +108,7 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 	(*data)(10) = 273.; // reference temperature dependency parameter for "
 	(*data)(11) = 1.; // constant factor for Arrhenius term
 	(*data)(12) = 0.; // activation energy in Arrhenius term
-	Burgers::SolidBurgers material(data);
+	Burgers::SolidBurgers material(*data);
 
 	// state and trial variables
 	Eigen::Matrix<double, 6, 1> eps_i, eps_K_t, eps_K_j, eps_M_t, eps_M_j;
@@ -224,7 +224,7 @@ TEST(SolidProps, YieldMohrCoulomb)
 	const double phi((*data)(9) * PI / 180.);
 	(*data)(11) = 29.9; // transition angle
 
-	Minkley::SolidMinkley material(data);
+	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
 	Eigen::Matrix<double, 6, 1> sig_i;
@@ -270,7 +270,7 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 	(*data)(12) = 0.1; // regularisation
 	(*data)(13) = 0.; // temperature parameter for Maxwell viscosity
 	(*data)(14) = 313.; // reference temperature for Maxwell viscosity
-	Minkley::SolidMinkley material(data);
+	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
 	Eigen::Matrix<double, 6, 1> eps_i, eps_K_t, eps_K_j, eps_M_t, eps_M_j, eps_pl_j, eps_pl_t;
@@ -441,7 +441,7 @@ TEST(SolidProps, MinkleyFullResidual)
 	(*data)(12) = 0.01; // regularisation
 	(*data)(13) = 0.; // temperature parameter for Maxwell viscosity
 	(*data)(14) = 0.; // reference temperature for Maxwell viscosity
-	Minkley::SolidMinkley material(data);
+	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
 	Eigen::Matrix<double, 6, 1> eps_i, eps_K_t, eps_K_j, eps_M_t, eps_M_j, eps_pl_t, eps_pl_j;
@@ -557,7 +557,7 @@ TEST(SolidProps, MinkleyFullJacobian)
 	(*data)(12) = 0.01; // regularisation
 	(*data)(13) = 0.; // temperature parameter for Maxwell viscosity
 	(*data)(14) = 0.; // reference temperature for Maxwell viscosity
-	Minkley::SolidMinkley material(data);
+	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
 	Eigen::Matrix<double, 6, 1> eps_i, eps_K_t, eps_K_j, eps_M_t, eps_M_j, eps_pl_t, eps_pl_j;

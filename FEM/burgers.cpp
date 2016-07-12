@@ -2,21 +2,21 @@
 #include "PhysicalConstant.h"
 namespace Burgers
 {
-SolidBurgers::SolidBurgers(const Math_Group::Matrix* data)
+SolidBurgers::SolidBurgers(const Math_Group::Matrix& data)
 {
-	GK0 = (*data)(0); // Kelvin shear modulus
-	mK = (*data)(1); // dependency parameter for "
-	etaK0 = (*data)(2); // Kelvin viscosity
-	mvK = (*data)(3); // dependency parameter for "
-	GM0 = (*data)(4); // Maxwell shear modulus
-	KM0 = (*data)(5); // Maxwell bulk modulus
-	etaM0 = (*data)(6); // Maxwell viscosity
-	mvM = (*data)(7); // dependency parameter for "
-	m_GM = (*data)(8); // slope of elesticity temperature dependence
-	m_KM = (*data)(9); // slope of elesticity temperature dependence
-	T_ref = (*data)(10); // reference temperature dependency parameter for "
-	B = (*data)(11); // constant factor for Arrhenius term
-	Q = (*data)(12); // activation energy in Arrhenius term
+	GK0 = data(0); // Kelvin shear modulus
+	mK = data(1); // dependency parameter for "
+	etaK0 = data(2); // Kelvin viscosity
+	mvK = data(3); // dependency parameter for "
+	GM0 = data(4); // Maxwell shear modulus
+	KM0 = data(5); // Maxwell bulk modulus
+	etaM0 = data(6); // Maxwell viscosity
+	mvM = data(7); // dependency parameter for "
+	m_GM = data(8); // slope of elesticity temperature dependence
+	m_KM = data(9); // slope of elesticity temperature dependence
+	T_ref = data(10); // reference temperature dependency parameter for "
+	B = data(11); // constant factor for Arrhenius term
+	Q = data(12); // activation energy in Arrhenius term
 
 	GM = GM0;
 	KM = KM0;

@@ -15,7 +15,7 @@ typedef Eigen::Matrix<double, 6, 1> KVec;
 class SolidBurgers
 {
 public:
-	SolidBurgers(const Math_Group::Matrix* data);
+	explicit SolidBurgers(const Math_Group::Matrix& data);
 	~SolidBurgers() {}
 	// basic material parameters
 	double GK0, GM0, KM0, etaK0, etaM0, mK, mvK, mvM, l0, T_ref, m_GM, m_KM, B, Q;

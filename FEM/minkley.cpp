@@ -9,14 +9,14 @@ int sgn(T val)
 	return (T(0) < val) - (val < T(0));
 }
 
-SolidMinkley::SolidMinkley(const Math_Group::Matrix* data)
+SolidMinkley::SolidMinkley(const Math_Group::Matrix& data)
 {
-	GK0 = (*data)(0); // Kelvin shear modulus
-	etaK0 = (*data)(1); // Kelvin viscosity
-	GM0 = (*data)(2); // Maxwell shear modulus
-	KM0 = (*data)(3); // Maxwell bulk modulus
-	etaM0 = (*data)(4); // Maxwell viscosity
-	if (std::abs((*data)(5)) < 1.e-3)
+	GK0 = data(0); // Kelvin shear modulus
+	etaK0 = data(1); // Kelvin viscosity
+	GM0 = data(2); // Maxwell shear modulus
+	KM0 = data(3); // Maxwell bulk modulus
+	etaM0 = data(4); // Maxwell viscosity
+	if (std::abs(data(5)) < 1.e-3)
 	{
 		mvM = std::log(1. + std::sqrt(2.)); // m -- effective stress factor in viscosity relationship
 		nvM = 0.; // n -- effective stress exponent in viscosity relationship
@@ -25,17 +25,17 @@ SolidMinkley::SolidMinkley(const Math_Group::Matrix* data)
 	}
 	else
 	{
-		mvM = (*data)(5); // m -- effective stress factor in viscosity relationship
-		nvM = (*data)(6); // n -- effective stress exponent in viscosity relationship
+		mvM = data(5); // m -- effective stress factor in viscosity relationship
+		nvM = data(6); // n -- effective stress exponent in viscosity relationship
 	}
-	coh0 = (*data)(7); // initial cohesion
-	hard = (*data)(8); // hardening/softening modulus
-	phi = (*data)(9) * PI / 180.; // friction angle
-	psi = (*data)(10) * PI / 180.; // dilatancy angle
-	thetaT = (*data)(11) * PI / 180.; // transition angle
-	eta_reg = (*data)(12); // viscosity for viscoplastic regularisation
-	l0 = (*data)(13); // temperature parameter for Maxwell viscosity
-	T0 = (*data)(14); // reference temperature for Maxwell viscosity
+	coh0 = data(7); // initial cohesion
+	hard = data(8); // hardening/softening modulus
+	phi = data(9) * PI / 180.; // friction angle
+	psi = data(10) * PI / 180.; // dilatancy angle
+	thetaT = data(11) * PI / 180.; // transition angle
+	eta_reg = data(12); // viscosity for viscoplastic regularisation
+	l0 = data(13); // temperature parameter for Maxwell viscosity
+	T0 = data(14); // reference temperature for Maxwell viscosity
 
 	etaM = etaM0;
 	coh = coh0;

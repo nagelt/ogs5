@@ -16,7 +16,7 @@ typedef Eigen::Matrix<double, 6, 1> KVec;
 class SolidMinkley
 {
 public:
-	SolidMinkley(const Math_Group::Matrix* data);
+	explicit SolidMinkley(const Math_Group::Matrix& data);
 	~SolidMinkley() {}
 	// basic material parameters
 	double GK0, GM0, KM0, etaK0, etaM0, mvM;
