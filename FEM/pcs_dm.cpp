@@ -1083,7 +1083,7 @@ void CRFProcessDeformation::InitGauss(void)
 	}
 
 	for (i = 0; i < m_msh->GetNodesNumber(false); i++)
-		for (j = 0; j < NS + 2; j++)
+		for (j = 0; j < NS + 3; j++)
 			SetNodeValue(i, Idx_Strain[j], 0.0);
 	MeshLib::CElem* elem = NULL;
 	for (i = 0; i < m_msh->ele_vector.size(); i++)
@@ -1291,7 +1291,7 @@ void CRFProcessDeformation::CreateInitialState4Excavation()
 	UpdateInitialStress(false); // s-->s0
 	m_msh->ConnectedElements2Node();
 	for (i = 0; i < m_msh->GetNodesNumber(false); i++)
-		for (j = 0; j < NS + 2; j++)
+		for (j = 0; j < NS + 3; j++)
 			SetNodeValue(i, Idx_Strain[j], 0.0);
 #if !defined(USE_PETSC) // && !defined(other parallel libs)//03.3012. WW
 	if (dom_vector.size() > 0)

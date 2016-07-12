@@ -1663,7 +1663,8 @@ void CSolidProperties::ExtractConsistentTangent(const Eigen::MatrixXd& Jac, cons
 	Eigen::MatrixXd dzdE(local_dim, 6);
 	// solve linear system
 	if (pivoting)
-		dzdE = Jac.fullPivLu().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
+		dzdE = Jac.fullPivHouseholderQr().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
+		//dzdE = Jac.fullPivLu().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
 	else
 		dzdE = Jac.householderQr().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
 	// in-built Gauss elimination solver was at least 4 OoM more inaccurate.
@@ -1877,8 +1878,8 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		// Get Jacobian
 		material_minkley->CalViscoelasticJacobian(dt, sig_j, sig_eff, K_loc);
 		// Solve linear system; Choice of solver can be influenced by material properties/property ratios
-		// inc_loc = K_loc.fullPivHouseholderQr().solve(-res_loc);
-		// others: fullPivLu() and colPivHouseholderQr()
+		//inc_loc = K_loc.fullPivHouseholderQr().solve(-res_loc);
+		//others: fullPivLu() and colPivHouseholderQr()
 		inc_loc = K_loc.fullPivLu().solve(-res_loc);
 		// increment solution vectors
 		sig_j += inc_loc.block<6, 1>(0, 0);
@@ -1914,7 +1915,7 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 			material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, K_loc_p);
 			// Solve linear system; Choice of solver can be influenced by material properties/property ratios
 			inc_loc_p = K_loc_p.fullPivLu().solve(-res_loc_p);
-			// inc_loc_p = K_loc_p.householderQr().solve(-res_loc_p);
+			//inc_loc_p = K_loc_p.householderQr().solve(-res_loc_p);
 			// increment solution vectors
 			sig_j += inc_loc_p.block<6, 1>(0, 0);
 			eps_K_j += inc_loc_p.block<6, 1>(6, 0);

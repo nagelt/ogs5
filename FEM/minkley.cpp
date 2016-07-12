@@ -145,7 +145,7 @@ double SolidMinkley::YieldMohrCoulomb(const KVec& sig)
 KVec SolidMinkley::DetaM_Dsigma(double sig_eff, const KVec& sigd_i)
 {
 	KVec res;
-	if (sig_eff < DBL_EPSILON)
+	if (sig_eff < DBL_EPSILON || std::abs(nvM) < DBL_EPSILON)
 		return sigd_i * 0.;
 	else
 	{
