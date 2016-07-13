@@ -49,8 +49,8 @@ SolidMinkley::SolidMinkley(const Math_Group::Matrix& data)
 	{
 		m_GM = 0.;
 		m_KM = 0.;
-		Bt = 1;
-		Q = 0; // for cutting off Arrhenius term
+		Bt = 1.;
+		Q = 0.; // for cutting off Arrhenius term
 		T_ref = 273.15;
 	}
 }
@@ -63,7 +63,7 @@ SolidMinkley::SolidMinkley(const Math_Group::Matrix& data)
 **************************************************************************/
 void SolidMinkley::UpdateMinkleyProperties(double s_eff, const double eps_p_eff, double Temperature)
 {
-	const double dT = Temperature - T_ref;
+	const double dT(Temperature - T_ref);
 	GM = GM0 + m_GM * dT;
 	KM = KM0 + m_KM * dT;
 
@@ -73,7 +73,7 @@ void SolidMinkley::UpdateMinkleyProperties(double s_eff, const double eps_p_eff,
 		etaM = etaM0 / std::sinh(mvM * std::pow(s_eff, nvM)); // viscosity function update
 	else
 		etaM = etaM0;
-	etaM *= Bt * std::exp(Q / (PhysicalConstant::IdealGasConstant * Temperature));
+	etaM *= Bt * std::exp(Q *(-dT) / (PhysicalConstant::IdealGasConstant * Temperature * T_ref));
 
 	coh = coh0 * (1. + eps_p_eff * hard); // linear isotropic hardening/softening
 //	if (etaM / etaM0 < 1.e-2)
