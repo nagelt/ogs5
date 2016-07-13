@@ -34,11 +34,25 @@ SolidMinkley::SolidMinkley(const Math_Group::Matrix& data)
 	psi = data(10) * PI / 180.; // dilatancy angle
 	thetaT = data(11) * PI / 180.; // transition angle
 	eta_reg = data(12); // viscosity for viscoplastic regularisation
-	l0 = data(13); // temperature parameter for Maxwell viscosity
-	T0 = data(14); // reference temperature for Maxwell viscosity
+	m_GM = data(13); // slope of elesticity temperature dependence
+	m_KM = data(14); // slope of elesticity temperature dependence
+	T_ref = data(15); // reference temperature dependency parameter for "
+	Bt = data(16); // constant factor for Arrhenius term
+	Q = data(17); // activation energy in Arrhenius term
 
 	etaM = etaM0;
 	coh = coh0;
+	GM = GM0;
+	KM = KM0;
+
+	if (!T_Process)
+	{
+		m_GM = 0.;
+		m_KM = 0.;
+		Bt = 1;
+		Q = 0; // for cutting off Arrhenius term
+		T_ref = 273.15;
+	}
 }
 
 /**************************************************************************
@@ -49,11 +63,18 @@ SolidMinkley::SolidMinkley(const Math_Group::Matrix& data)
 **************************************************************************/
 void SolidMinkley::UpdateMinkleyProperties(double s_eff, const double eps_p_eff, double Temperature)
 {
+	const double dT = Temperature - T_ref;
+	GM = GM0 + m_GM * dT;
+	KM = KM0 + m_KM * dT;
+
+	s_eff *= GM;
+
 	if (s_eff > DBL_EPSILON)
 		etaM = etaM0 / std::sinh(mvM * std::pow(s_eff, nvM)); // viscosity function update
 	else
 		etaM = etaM0;
-	etaM *= std::exp(l0 * (Temperature - T0));
+	etaM *= Bt * std::exp(Q / (PhysicalConstant::IdealGasConstant * Temperature));
+
 	coh = coh0 * (1. + eps_p_eff * hard); // linear isotropic hardening/softening
 	if (etaM / etaM0 < 1.e-2)
 		std::cout << "WARNING: Maxwell viscosity sank to 100th of original value." << std::endl;
@@ -128,7 +149,7 @@ KVec SolidMinkley::DetaM_Dsigma(double sig_eff, const KVec& sigd_i)
 		return sigd_i * 0.;
 	else
 	{
-		res = 3. / 2. * sigd_i * GM0; // sig_eff in denominator lumped into pow function (-2 instead of -1)
+		res = 3. / 2. * sigd_i * GM; // sig_eff in denominator lumped into pow function (-2 instead of -1)
 		res *= -etaM0 * mvM * nvM * std::pow(sig_eff, nvM - 2.)
 		       / (std::tanh(mvM * std::pow(sig_eff, nvM)) * std::sinh(mvM * std::pow(sig_eff, nvM)));
 		return res;
@@ -147,11 +168,11 @@ void SolidMinkley::CalViscoelasticResidual(const double dt, const KVec& dstrain_
                                            const KVec& dstrain_Max_t, const KVec& dstrain_p_curr,
                                            Eigen::Matrix<double, 18, 1>& res)
 {
-	const KVec dstress_curr(GM0 * SolidMath::P_dev * stress_curr);
+	const KVec dstress_curr(GM * SolidMath::P_dev * stress_curr);
 
 	// calculate stress residual
 	res.block<6, 1>(0, 0) = stress_curr - (2. * (dstrain_curr - dstrain_Kel_curr - dstrain_Max_curr - dstrain_p_curr)
-	                                       + KM0 / GM0 * (e_curr - e_p_curr) * SolidMath::ivec);
+	                                       + KM / GM * (e_curr - e_p_curr) * SolidMath::ivec);
 	// calculate Kelvin strain residual
 	res.block<6, 1>(6, 0) = (dstrain_Kel_curr - dstrain_Kel_t) / dt
 	                        - 1. / (2. * etaK0) * (dstress_curr - 2. * GK0 * dstrain_Kel_curr);
@@ -169,8 +190,8 @@ void SolidMinkley::CalViscoelasticJacobian(const double dt, const KVec& stress_c
                                            Eigen::Matrix<double, 18, 18>& Jac)
 {
 	// 6x6 submatrices of the Jacobian
-	const KVec sigd_curr(GM0 * SolidMath::P_dev * stress_curr);
-	const KVec dmu_vM = DetaM_Dsigma(sig_eff * GM0, sigd_curr);
+	const KVec sigd_curr(GM * SolidMath::P_dev * stress_curr);
+	const KVec dmu_vM = DetaM_Dsigma(sig_eff * GM, sigd_curr);
 
 	// Check Dimension of Jacobian
 	// assert(Jac.cols() == 18 && Jac.rows() == 18);
@@ -186,7 +207,7 @@ void SolidMinkley::CalViscoelasticJacobian(const double dt, const KVec& stress_c
 	Jac.block<6, 6>(0, 12) = 2. * SolidMath::ident;
 
 	// build G_21
-	Jac.block<6, 6>(6, 0) = -GM0 / (2. * etaK0) * SolidMath::P_dev;
+	Jac.block<6, 6>(6, 0) = -GM / (2. * etaK0) * SolidMath::P_dev;
 
 	// build G_22
 	Jac.block<6, 6>(6, 6) = (1. / dt + GK0 / etaK0) * SolidMath::ident;
@@ -194,7 +215,7 @@ void SolidMinkley::CalViscoelasticJacobian(const double dt, const KVec& stress_c
 	// nothing to do for G_23
 
 	// build G_31
-	Jac.block<6, 6>(12, 0) = -1. / (2. * etaM) * (GM0 * SolidMath::P_dev - sigd_curr * dmu_vM.transpose() / etaM);
+	Jac.block<6, 6>(12, 0) = -1. / (2. * etaM) * (GM * SolidMath::P_dev - sigd_curr * dmu_vM.transpose() / etaM);
 
 	// nothing to do for G_32
 
@@ -214,7 +235,7 @@ void SolidMinkley::CaldGdE(Eigen::Matrix<double, 18, 6>& dGdE)
 	// Check Dimension of dGdE
 	// assert(dGdE.cols() == 6 && dGdE.rows() == 18);
 	dGdE.setZero(18, 6);
-	dGdE.block<6, 6>(0, 0) = -2. * SolidMath::P_dev - 3. * KM0 / GM0 * SolidMath::P_sph;
+	dGdE.block<6, 6>(0, 0) = -2. * SolidMath::P_dev - 3. * KM / GM * SolidMath::P_sph;
 }
 
 /**************************************************************************
@@ -292,7 +313,7 @@ void SolidMinkley::CalViscoplasticResidual(const double dt, const KVec& dstrain_
                                            const double e_pl_vol_t, const double e_pl_eff_curr, const double e_pl_eff_t,
                                            const double lam_curr, Eigen::Matrix<double, 27, 1>& res)
 {
-	const KVec sigd_curr(GM0 * SolidMath::P_dev * stress_curr);
+	const KVec sigd_curr(GM * SolidMath::P_dev * stress_curr);
 	const double J_2(SolidMath::CalJ2(sigd_curr)), J_3(SolidMath::CalJ3(sigd_curr)),
 	    theta(SolidMath::CalLodeAngle(sigd_curr));
 	const KVec dev_sigd_curr_inv(SolidMath::P_dev * SolidMath::InvertVector(sigd_curr));
@@ -307,7 +328,7 @@ void SolidMinkley::CalViscoplasticResidual(const double dt, const KVec& dstrain_
 
 	// calculate stress residual
 	res.block<6, 1>(0, 0) = stress_curr - (2. * (dstrain_curr - dstrain_Kel_curr - dstrain_Max_curr - dstrain_pl_curr)
-	                                       + KM0 / GM0 * (e_curr - e_pl_vol_curr) * SolidMath::ivec);
+	                                       + KM / GM * (e_curr - e_pl_vol_curr) * SolidMath::ivec);
 
 	// calculate deviatoric Kelvin strain residual
 	res.block<6, 1>(6, 0) = (dstrain_Kel_curr - dstrain_Kel_t) / dt
@@ -327,7 +348,7 @@ void SolidMinkley::CalViscoplasticResidual(const double dt, const KVec& dstrain_
 	                            - std::sqrt(2. / 3. * lam_curr * lam_curr * (double)(dev_flow.transpose() * dev_flow));
 
 	// yield function with viscoplastic regularisation
-	res.block<1, 1>(26, 0)(0) = YieldMohrCoulomb(stress_curr * GM0) / GM0 - lam_curr * eta_reg;
+	res.block<1, 1>(26, 0)(0) = YieldMohrCoulomb(stress_curr * GM) / GM - lam_curr * eta_reg;
 }
 
 /**************************************************************************
@@ -470,13 +491,13 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
                                            const double lam_curr, Eigen::Matrix<double, 27, 27>& Jac)
 {
 	// submatrices of the Jacobian
-	const KVec sigd_curr(GM0 * SolidMath::P_dev * stress_curr);
+	const KVec sigd_curr(GM * SolidMath::P_dev * stress_curr);
 	const double J_2(SolidMath::CalJ2(sigd_curr)), J_3(SolidMath::CalJ3(sigd_curr)),
 	    theta(SolidMath::CalLodeAngle(sigd_curr));
 	const KVec sigd_curr_inv(SolidMath::InvertVector(sigd_curr));
 	const KVec dev_sigd_curr_inv(SolidMath::P_dev * sigd_curr_inv);
 	const double vol_flow(3. * DG_DI1(psi));
-	const KVec dmu_vM = DetaM_Dsigma(sig_eff * GM0, sigd_curr);
+	const KVec dmu_vM = DetaM_Dsigma(sig_eff * GM, sigd_curr);
 	KVec dev_flow;
 	Eigen::Matrix<double, 6, 6> Ddev_flowDsigma;
 	const double DthetaDJ2(Dtheta_DJ2(theta, J_2));
@@ -510,7 +531,7 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
 		             * dev_sigd_curr_inv.transpose()
 		       + J_3 * (DDG_DDtheta(theta, J_2, psi) * DthetaDJ3 + DGDtheta * DDtheta_DJ3_Dtheta(theta, J_3))
 		             * (DthetaDJ2 * dev_sigd_curr_inv * sigd_curr.transpose()
-		                + DthetaDJ3 * J_3 * dev_sigd_curr_inv * dev_sigd_curr_inv.transpose())) * GM0;
+		                + DthetaDJ3 * J_3 * dev_sigd_curr_inv * dev_sigd_curr_inv.transpose())) * GM;
 	}
 
 	const double eff_flow = std::sqrt(2. / 3. * lam_curr * lam_curr * (double)(dev_flow.transpose() * dev_flow));
@@ -525,12 +546,12 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
 	Jac.block<6, 6>(0, 18) = 2. * SolidMath::ident;
 
 	// build G_15
-	Jac.block<6, 1>(0, 24) = KM0 / GM0 * SolidMath::ivec;
+	Jac.block<6, 1>(0, 24) = KM / GM * SolidMath::ivec;
 
 	// G_16 and G_17 remain zeros and are not set separately
 
 	// build G_21
-	Jac.block<6, 6>(6, 0) = -GM0 / (2. * etaK0) * SolidMath::P_dev;
+	Jac.block<6, 6>(6, 0) = -GM / (2. * etaK0) * SolidMath::P_dev;
 
 	// build G_22
 	Jac.block<6, 6>(6, 6) = (1. / dt + GK0 / etaK0) * SolidMath::ident;
@@ -538,7 +559,7 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
 	// G_23 through G_27 are zero
 
 	// build G_31
-	Jac.block<6, 6>(12, 0) = -1. / (2. * etaM) * (GM0 * SolidMath::P_dev - sigd_curr * dmu_vM.transpose() / etaM);
+	Jac.block<6, 6>(12, 0) = -1. / (2. * etaM) * (GM * SolidMath::P_dev - sigd_curr * dmu_vM.transpose() / etaM);
 
 	// G_32 is 0
 
@@ -597,7 +618,7 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
 	// G_72 - G_75 zero
 
 	// build G_76
-	Jac.block<1, 1>(26, 25)(0) = -coh0 * hard * std::cos(phi) / GM0;
+	Jac.block<1, 1>(26, 25)(0) = -coh0 * hard * std::cos(phi) / GM;
 
 	// build G_77
 	Jac.block<1, 1>(26, 26)(0) = -eta_reg;
@@ -615,7 +636,7 @@ void SolidMinkley::CalEPdGdE(Eigen::Matrix<double, 27, 6>& dGdE)
 	// Check Dimension of dGdE
 	// assert(dGdE.cols() == 6 && dGdE.rows() == 27);
 	dGdE.setZero(27, 6);
-	dGdE.block<6, 6>(0, 0) = -2. * SolidMath::P_dev - 3. * KM0 / GM0 * SolidMath::P_sph;
+	dGdE.block<6, 6>(0, 0) = -2. * SolidMath::P_dev - 3. * KM / GM * SolidMath::P_sph;
 }
 
 } // namespace Minkley ends

@@ -596,9 +596,9 @@ std::ios::pos_type CSolidProperties::Read(std::ifstream* msp_file)
 				// 10: T_ref // reference temperature;
 				// 11: B // constant factor for Arrhenius term
 				// 12: Q // activation energy in Arrhenius term
-				data_Creep = new Matrix(14);
+				data_Creep = new Matrix(13);
 				in_sd.str(GetLineFromFile1(msp_file));
-				for (i = 0; i < 14; i++)
+				for (i = 0; i < 13; i++)
 					in_sd >> (*data_Creep)(i);
 				in_sd.clear();
 
@@ -623,11 +623,15 @@ std::ios::pos_type CSolidProperties::Read(std::ifstream* msp_file)
 				// 10: dilatancy angle
 				// 11: transition angle for corner smoothing
 				// 12: viscosity for viscoplastic regularisation
-				// 13: l_0 // for temperature dependency of maxwell viscosity
+				// 13: m_GM // slope of elesticity temperature dependence of G_M
+				// 14: m_KM // slope of elesticity temperature dependence of K_M
+				// 15: T_ref // reference temperature;
+				// 16: B // constant factor for Arrhenius term
+				// 17: Q // activation energy in Arrhenius term
 
-				data_Creep = new Matrix(15);
+				data_Creep = new Matrix(18);
 				in_sd.str(GetLineFromFile1(msp_file));
-				for (i = 0; i < 16; i++)
+				for (i = 0; i < 18; i++)
 					in_sd >> (*data_Creep)(i);
 				in_sd.clear();
 
@@ -1697,6 +1701,9 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<dou
 	eps_M_j = eps_M_t;
 	eps_K_j = eps_K_t;
 
+	if (!T_Process)
+		Temperature = material_burgers->T_ref;
+
 	// calculation of deviatoric and spherical parts
 	const double e_i = eps_i(0) + eps_i(1) + eps_i(2);
 	const KVec epsd_i(SolidMath::P_dev * eps_i);
@@ -1707,14 +1714,7 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<dou
 	// Calculate effective stress and update material properties
 	sig_eff = SolidMath::CalEffectiveStress(sigd_j);
 
-	if (!T_Process)
-	{
-		Temperature = material_burgers->T_ref;
-		material_burgers->B = 1;
-		material_burgers->Q = 0; // for cutting off Arrhenius term
-	}
-
-	material_burgers->UpdateBurgersProperties(sig_eff * material_burgers->GM, Temperature);
+	material_burgers->UpdateBurgersProperties(sig_eff, Temperature);
 
 	// initial evaluation of residual and Jacobian
 	material_burgers->CalResidualBurgers(dt, epsd_i, sigd_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, res_loc);
@@ -1726,7 +1726,6 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<dou
 	// Loop variables
 	int counter = 0;
 	const int counter_max(20);
-	const double local_tolerance(1.e-16);
 
 	if (Output) // Need not be performant;
 	{
@@ -1737,7 +1736,7 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<dou
 		Dum.close();
 	};
 	//    for (int counter(0); counter<counter_max && res_loc.norm() > local_tolerance; ++counter)
-	while (res_loc.norm() > local_tolerance && counter < counter_max)
+	while (res_loc.norm() > Tolerance_Local_Newton && counter < counter_max)
 	{
 		counter++;
 		// Get Jacobian
@@ -1755,7 +1754,7 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<dou
 		eps_M_j += inc_loc.block<6, 1>(12, 0);
 		// Calculate effective stress and update material properties
 		sig_eff = SolidMath::CalEffectiveStress(sigd_j);
-		material_burgers->UpdateBurgersProperties(sig_eff * material_burgers->GM, Temperature);
+		material_burgers->UpdateBurgersProperties(sig_eff, Temperature);
 		// evaluation of new residual
 		material_burgers->CalResidualBurgers(dt, epsd_i, sigd_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, res_loc);
 		if (Output)
@@ -1836,19 +1835,20 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 	eps_K_j = eps_K_t;
 	eps_pl_j = eps_pl_t;
 
+	if (!T_Process)
+		Temperature = material_minkley->T_ref;
+
 	// calculation of deviatoric and spherical parts
 	const double e_i = eps_i(0) + eps_i(1) + eps_i(2);
 	const KVec epsd_i(SolidMath::P_dev * eps_i);
 
 	// dimensionless stresses
 	sigd_j = 2.0 * (epsd_i - eps_M_j - eps_K_j - eps_pl_j); // initial guess as elastic predictor
-	sig_j = sigd_j + material_minkley->KM0 / material_minkley->GM0 * (e_i - e_pl_v) * SolidMath::ivec;
-	// std::cout << "Stress guesstimate_zz " << sig_j(2)*material_minkley->GM0 << std::endl;
-
 	// Calculate effective stress and update material properties
 	sig_eff = SolidMath::CalEffectiveStress(sigd_j);
-
-	material_minkley->UpdateMinkleyProperties(sig_eff * material_minkley->GM0, e_pl_eff, Temperature);
+	material_minkley->UpdateMinkleyProperties(sig_eff, e_pl_eff, Temperature);
+	sig_j = sigd_j + material_minkley->KM / material_minkley->GM * (e_i - e_pl_v) * SolidMath::ivec;
+	// std::cout << "Stress guesstimate_zz " << sig_j(2)*material_minkley->GM0 << std::endl;
 
 	// initial evaluation of residual and Jacobian
 	material_minkley->CalViscoelasticResidual(dt, epsd_i, e_i, e_pl_v, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t,
@@ -1859,7 +1859,6 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 	// Loop variables
 	int counter = 0;
 	const int counter_max(20);
-	const double local_tolerance(1.e-16);
 
 	if (Output)
 	{
@@ -1870,20 +1869,22 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		Dum.close();
 	}
 
-	while (res_loc.norm() > local_tolerance && counter < counter_max)
+	while (res_loc.norm() > Tolerance_Local_Newton && counter < counter_max)
 	{
 		counter++;
 		// Get Jacobian
 		material_minkley->CalViscoelasticJacobian(dt, sig_j, sig_eff, K_loc);
-		// Solve linear system
-		inc_loc = K_loc.fullPivHouseholderQr().solve(-res_loc);
+		// Solve linear system; Choice of solver can be influenced by material properties/property ratios
+		// inc_loc = K_loc.fullPivHouseholderQr().solve(-res_loc);
+		// others: fullPivLu() and colPivHouseholderQr()
+		inc_loc = K_loc.fullPivLu().solve(-res_loc);
 		// increment solution vectors
 		sig_j += inc_loc.block<6, 1>(0, 0);
 		eps_K_j += inc_loc.block<6, 1>(6, 0);
 		eps_M_j += inc_loc.block<6, 1>(12, 0);
 		// Calculate effective stress and update material properties
 		sig_eff = SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j);
-		material_minkley->UpdateMinkleyProperties(sig_eff * material_minkley->GM0, e_pl_eff, Temperature);
+		material_minkley->UpdateMinkleyProperties(sig_eff, e_pl_eff, Temperature);
 		// evaluation of new residual
 		material_minkley->CalViscoelasticResidual(dt, epsd_i, e_i, e_pl_v, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t,
 		                                          eps_pl_j, res_loc);
@@ -1896,7 +1897,7 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 			Dum.close();
 		};
 	}
-	if (!(material_minkley->YieldMohrCoulomb(sig_j * material_minkley->GM0) < local_tolerance))
+	if (!(material_minkley->YieldMohrCoulomb(sig_j * material_minkley->GM) < Tolerance_Local_Newton))
 	{
 		Eigen::Matrix<double, 27, 1> res_loc_p, inc_loc_p;
 		Eigen::Matrix<double, 27, 27> K_loc_p;
@@ -1904,14 +1905,15 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		material_minkley->CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 		                                          eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t, lam, res_loc_p);
 		material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, K_loc_p);
-		while (res_loc_p.norm() > local_tolerance && counter < counter_max)
+		while (res_loc_p.norm() > Tolerance_Local_Newton && counter < counter_max)
 		{
 			counter++;
 			// std::cout << "iter " << counter << std::endl;
 			// Get Jacobian
 			material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, K_loc_p);
-			// Solve linear system
-			inc_loc_p = K_loc_p.fullPivHouseholderQr().solve(-res_loc_p);
+			// Solve linear system; Choice of solver can be influenced by material properties/property ratios
+			inc_loc_p = K_loc_p.fullPivLu().solve(-res_loc_p);
+			// inc_loc_p = K_loc_p.householderQr().solve(-res_loc_p);
 			// increment solution vectors
 			sig_j += inc_loc_p.block<6, 1>(0, 0);
 			eps_K_j += inc_loc_p.block<6, 1>(6, 0);
@@ -1922,7 +1924,7 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 			lam += inc_loc_p.block<1, 1>(26, 0)(0);
 			// Calculate effective stress and update material properties
 			sig_eff = SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j);
-			material_minkley->UpdateMinkleyProperties(sig_eff * material_minkley->GM0, e_pl_eff, Temperature);
+			material_minkley->UpdateMinkleyProperties(sig_eff, e_pl_eff, Temperature);
 			// evaluation of new residual
 			material_minkley->CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t,
 			                                          eps_pl_j, eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t, lam,
@@ -1942,7 +1944,10 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		// Calculate dGdE for time step
 		material_minkley->CalEPdGdE(dGdE);
 		// get dsigdE matrix
-		ExtractConsistentTangent(K_loc_p, dGdE, true, dsigdE);
+		ExtractConsistentTangent(K_loc_p, dGdE, true, dsigdE); // Full pivoting needed for global convergence
+		//		if (counter == counter_max)
+		//			std::cout << "WARNING: Maximum iteration number needed in LocalNewtonMinkley (VP). Convergence not "
+		//			             "guaranteed. Residual = " << res_loc_p.norm() << std::endl;
 	}
 	else
 	{
@@ -1951,16 +1956,15 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		// Calculate dGdE for time step
 		material_minkley->CaldGdE(dGdE);
 		// get dsigdE matrix
-		ExtractConsistentTangent(K_loc, dGdE, true, dsigdE);
+		ExtractConsistentTangent(K_loc, dGdE, true, dsigdE); // Full pivoting needed for global convergence
+		//		if (counter == counter_max)
+		//			std::cout << "WARNING: Maximum iteration number needed in LocalNewtonMinkley. Convergence not
+		// guaranteed."
+		//			          << std::endl;
 	}
-	if (counter == counter_max)
-		std::cout << "WARNING: Maximum iteration number needed in LocalNewtonMinkley. Convergence not guaranteed."
-		          << std::endl;
-
 	// add hydrostatic part to stress and tangent
-	sig_j *= material_minkley->GM0;
-	dsigdE *= material_minkley->GM0;
-
+	sig_j *= material_minkley->GM;
+	dsigdE *= material_minkley->GM;
 	// Sort into Consistent Tangent matrix for global Newton iteration and into standard OGS arrays
 	SolidMath::Kelvin_to_Voigt_Stress(sig_j, stress_curr);
 	SolidMath::Kelvin_to_Voigt_Strain(eps_K_j, eps_K_curr);

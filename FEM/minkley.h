@@ -8,6 +8,7 @@
 #include "tools.h"
 #include "rf_msp_new.h"
 #include "invariants.h"
+#include "PhysicalConstant.h"
 
 namespace Minkley
 {
@@ -21,13 +22,16 @@ public:
 	// basic material parameters
 	double GK0, GM0, KM0, etaK0, etaM0, mvM;
 	// solution dependent values
-	double etaM;
+	double etaM, GM, KM;
 	// Parameters for Minkley model
 	double nvM, coh0, hard, phi, psi, thetaT, eta_reg;
 	// solution dependent
 	double coh;
-	double l0; // temperature parameter for Maxwell viscosity
-	double T0; // reference temperature for Maxwell viscosity
+	double m_GM; // slope of elesticity temperature dependence
+	double m_KM; // slope of elesticity temperature dependence
+	double T_ref; // reference temperature dependency parameter for "
+	double Bt; // constant factor for Arrhenius term
+	double Q; // activation energy in Arrhenius term
 
 	void UpdateMinkleyProperties(double s_eff, const double eps_p_eff, double Temperature);
 	double YieldMohrCoulomb(const KVec& sig);

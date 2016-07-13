@@ -22,8 +22,6 @@
 
 TEST(SolidProps, EffectiveStress)
 {
-	SolidProp::CSolidProperties solid;
-
 	// stress vectors
 	Eigen::Matrix<double, 6, 1> sig, sigd;
 	sigd.setZero(6);
@@ -94,7 +92,6 @@ TEST(SolidProps, LodeAngle)
 
 TEST(SolidProps, Lubby2JacobianNumeric)
 {
-	SolidProp::CSolidProperties solid;
 	Math_Group::Matrix* data;
 	data = new Math_Group::Matrix(13);
 
@@ -143,7 +140,7 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 	sigd_j = 2.0 * epsd_i;
 
 	// Update Material parameters
-	material.UpdateBurgersProperties(SolidMath::CalEffectiveStress(sigd_j * material.GM0), 273.);
+	material.UpdateBurgersProperties(SolidMath::CalEffectiveStress(sigd_j), 273.);
 
 	// set nontrivial internal variables
 	eps_K_j = 0.1 * epsd_i;
@@ -176,10 +173,10 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 				lower = sigd_j;
 				upper(j) += pertub;
 				lower(j) -= pertub;
-				material.UpdateBurgersProperties(SolidMath::CalEffectiveStress(upper * material.GM0), 273.);
+				material.UpdateBurgersProperties(SolidMath::CalEffectiveStress(upper), 273.);
 				material.CalResidualBurgers(dt, epsd_i, upper, eps_K_j, eps_K_t, eps_M_j, eps_M_t, residual);
 				up = residual(i);
-				material.UpdateBurgersProperties(SolidMath::CalEffectiveStress(lower * material.GM0), 273.);
+				material.UpdateBurgersProperties(SolidMath::CalEffectiveStress(lower), 273.);
 				material.CalResidualBurgers(dt, epsd_i, lower, eps_K_j, eps_K_t, eps_M_j, eps_M_t, residual);
 				low = residual(i);
 			}
@@ -190,7 +187,7 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 				upper(j - 6) += pertub;
 				lower(j - 6) -= pertub;
 				// Update Material parameters
-				material.UpdateBurgersProperties(SolidMath::CalEffectiveStress(sigd_j * material.GM0), 273.);
+				material.UpdateBurgersProperties(SolidMath::CalEffectiveStress(sigd_j), 273.);
 				material.CalResidualBurgers(dt, epsd_i, sigd_j, upper, eps_K_t, eps_M_j, eps_M_t, residual);
 				up = residual(i);
 				material.CalResidualBurgers(dt, epsd_i, sigd_j, lower, eps_K_t, eps_M_j, eps_M_t, residual);
@@ -203,7 +200,7 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 				upper(j - 12) += pertub;
 				lower(j - 12) -= pertub;
 				// Update Material parameters
-				material.UpdateBurgersProperties(SolidMath::CalEffectiveStress(sigd_j * material.GM0), 273.);
+				material.UpdateBurgersProperties(SolidMath::CalEffectiveStress(sigd_j), 273.);
 				material.CalResidualBurgers(dt, epsd_i, sigd_j, eps_K_j, eps_K_t, upper, eps_M_t, residual);
 				up = residual(i);
 				material.CalResidualBurgers(dt, epsd_i, sigd_j, eps_K_j, eps_K_t, lower, eps_M_t, residual);
@@ -217,7 +214,7 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 TEST(SolidProps, YieldMohrCoulomb)
 {
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(15);
+	data = new Math_Group::Matrix(18);
 
 	// set Constants
 	for (int i(0); i < 15; i++)
@@ -254,9 +251,8 @@ TEST(SolidProps, YieldMohrCoulomb)
 
 TEST(SolidProps, MinkleyJacobianNumeric)
 {
-	SolidProp::CSolidProperties solid;
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(15);
+	data = new Math_Group::Matrix(18);
 
 	// set Constants
 	(*data)(0) = 63.e3; // Kelvin shear modulus
@@ -272,8 +268,11 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 	(*data)(10) = 10.; // dilatancy angle
 	(*data)(11) = 28.; // transition angle
 	(*data)(12) = 0.1; // regularisation
-	(*data)(13) = 0.; // temperature parameter for Maxwell viscosity
-	(*data)(14) = 313.; // reference temperature for Maxwell viscosity
+	(*data)(13) = 0.; // slope of elesticity temperature dependence
+	(*data)(14) = 0.; // slope of elesticity temperature dependence
+	(*data)(15) = 273.; // reference temperature dependency parameter for "
+	(*data)(16) = 1.; // constant factor for Arrhenius term
+	(*data)(17) = 0.; // activation energy in Arrhenius term
 	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
@@ -318,7 +317,7 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 	sig_j = sigd_j + material.KM0 / material.GM0 * e_i * SolidMath::ivec;
 
 	// Update Material parameters
-	material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(sigd_j * material.GM0), 0., 0.);
+	material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(sigd_j), 0., 273.);
 
 	Eigen::Matrix<double, 18, 18> Jacobian;
 	Jacobian.setZero(18, 18);
@@ -348,14 +347,12 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 				upper(j) += pertub;
 				lower(j) -= pertub;
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * upper * material.GM0),
-				                                 0., 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * upper), 0., 273.);
 				material.CalViscoelasticResidual(dt, epsd_i, e_i, e_pv_j, upper, eps_K_j, eps_K_t, eps_M_j, eps_M_t,
 				                                 eps_pl_j, residual);
 				up = residual(i);
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * lower * material.GM0),
-				                                 0., 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * lower), 0., 273.);
 				material.CalViscoelasticResidual(dt, epsd_i, e_i, e_pv_j, lower, eps_K_j, eps_K_t, eps_M_j, eps_M_t,
 				                                 eps_pl_j, residual);
 				low = residual(i);
@@ -367,8 +364,7 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 				upper(j - 6) += pertub;
 				lower(j - 6) -= pertub;
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j * material.GM0),
-				                                 0., 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j), 0., 273.);
 				material.CalViscoelasticResidual(dt, epsd_i, e_i, e_pv_j, sig_j, upper, eps_K_t, eps_M_j, eps_M_t,
 				                                 eps_pl_j, residual);
 				up = residual(i);
@@ -383,8 +379,7 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 				upper(j - 12) += pertub;
 				lower(j - 12) -= pertub;
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j * material.GM0),
-				                                 0., 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j), 0., 273.);
 				material.CalViscoelasticResidual(dt, epsd_i, e_i, e_pv_j, sig_j, eps_K_j, eps_K_t, upper, eps_M_t,
 				                                 eps_pl_j, residual);
 				up = residual(i);
@@ -425,9 +420,8 @@ TEST(SolidProps, TensorInversion)
 
 TEST(SolidProps, MinkleyFullResidual)
 {
-	SolidProp::CSolidProperties solid;
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(15);
+	data = new Math_Group::Matrix(18);
 
 	// set Constants
 	(*data)(0) = 63.e3; // Kelvin shear modulus
@@ -443,8 +437,11 @@ TEST(SolidProps, MinkleyFullResidual)
 	(*data)(10) = 10.; // dilatancy angle
 	(*data)(11) = 29.; // transition angle
 	(*data)(12) = 0.01; // regularisation
-	(*data)(13) = 0.; // temperature parameter for Maxwell viscosity
-	(*data)(14) = 0.; // reference temperature for Maxwell viscosity
+	(*data)(13) = 0.; // slope of elesticity temperature dependence
+	(*data)(14) = 0.; // slope of elesticity temperature dependence
+	(*data)(15) = 273.15; // reference temperature dependency parameter for "
+	(*data)(16) = 1.; // constant factor for Arrhenius term
+	(*data)(17) = 0.; // activation energy in Arrhenius term
 	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
@@ -483,7 +480,7 @@ TEST(SolidProps, MinkleyFullResidual)
 
 	// guess stress increment (dimensionless)
 	sigd_j = 2.0 * epsd_i;
-	sig_j = sigd_j + material.KM0 / material.GM0 * e_i * SolidMath::ivec;
+	sig_j = sigd_j + material.KM / material.GM * e_i * SolidMath::ivec;
 
 	// Calculate residual for time step
 	const double dt(10.);
@@ -497,7 +494,7 @@ TEST(SolidProps, MinkleyFullResidual)
 	const double e_eff_i = 1.2 * e_i;
 
 	// Update Material parameters
-	material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(sigd_j * material.GM0), e_eff_i, 0.);
+	material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(sigd_j), e_eff_i, 273.15);
 
 	material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j, eps_pl_t,
 	                                 e_v_i, 0., e_eff_i, 0., lam_j, residual);
@@ -541,9 +538,8 @@ TEST(SolidProps, MinkleyFullResidual)
 
 TEST(SolidProps, MinkleyFullJacobian)
 {
-	SolidProp::CSolidProperties solid;
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(15);
+	data = new Math_Group::Matrix(18);
 
 	// set Constants
 	(*data)(0) = 63.e3; // Kelvin shear modulus
@@ -559,8 +555,11 @@ TEST(SolidProps, MinkleyFullJacobian)
 	(*data)(10) = 10.; // dilatancy angle
 	(*data)(11) = 29.; // transition angle
 	(*data)(12) = 0.01; // regularisation
-	(*data)(13) = 0.; // temperature parameter for Maxwell viscosity
-	(*data)(14) = 0.; // reference temperature for Maxwell viscosity
+	(*data)(13) = 0.; // slope of elesticity temperature dependence
+	(*data)(14) = 0.; // slope of elesticity temperature dependence
+	(*data)(15) = 273.15; // reference temperature dependency parameter for "
+	(*data)(16) = 1.; // constant factor for Arrhenius term
+	(*data)(17) = 0.; // activation energy in Arrhenius ter
 	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
@@ -599,7 +598,7 @@ TEST(SolidProps, MinkleyFullJacobian)
 
 	// guess stress increment (dimensionless)
 	sigd_j = 2.0 * epsd_i;
-	sig_j = sigd_j + material.KM0 / material.GM0 * e_i * SolidMath::ivec;
+	sig_j = sigd_j + material.KM / material.GM * e_i * SolidMath::ivec;
 
 	// Calculate residual for time step
 	const double dt(10.);
@@ -613,7 +612,7 @@ TEST(SolidProps, MinkleyFullJacobian)
 	const double e_eff_i = 1.2 * e_i;
 
 	// Update Material parameters
-	material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(sigd_j * material.GM0), e_eff_i, 0.);
+	material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(sigd_j), e_eff_i, 273.);
 
 	// Calculate Jacobian for time step
 	Eigen::Matrix<double, 27, 27> Jacobian;
@@ -637,14 +636,14 @@ TEST(SolidProps, MinkleyFullJacobian)
 				upper(j) += pertub;
 				lower(j) -= pertub;
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * upper * material.GM0),
-				                                 e_eff_i, 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * upper), e_eff_i,
+				                                 273.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, upper, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i, 0., lam_j, residual);
 				up = residual(i);
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * lower * material.GM0),
-				                                 e_eff_i, 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * lower), e_eff_i,
+				                                 273.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, lower, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i, 0., lam_j, residual);
 				low = residual(i);
@@ -656,8 +655,8 @@ TEST(SolidProps, MinkleyFullJacobian)
 				upper(j - 6) += pertub;
 				lower(j - 6) -= pertub;
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j * material.GM0),
-				                                 e_eff_i, 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j), e_eff_i,
+				                                 273.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, upper, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i, 0., lam_j, residual);
 				up = residual(i);
@@ -672,8 +671,8 @@ TEST(SolidProps, MinkleyFullJacobian)
 				upper(j - 12) += pertub;
 				lower(j - 12) -= pertub;
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j * material.GM0),
-				                                 e_eff_i, 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j), e_eff_i,
+				                                 273.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, upper, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i, 0., lam_j, residual);
 				up = residual(i);
@@ -688,8 +687,8 @@ TEST(SolidProps, MinkleyFullJacobian)
 				upper(j - 18) += pertub;
 				lower(j - 18) -= pertub;
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j * material.GM0),
-				                                 e_eff_i, 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j), e_eff_i,
+				                                 273.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, upper,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i, 0., lam_j, residual);
 				up = residual(i);
@@ -700,8 +699,8 @@ TEST(SolidProps, MinkleyFullJacobian)
 			else if (j < 25)
 			{
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j * material.GM0),
-				                                 e_eff_i, 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j), e_eff_i,
+				                                 273.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i + pertub, 0., e_eff_i, 0., lam_j, residual);
 				up = residual(i);
@@ -712,13 +711,13 @@ TEST(SolidProps, MinkleyFullJacobian)
 			else if (j < 26)
 			{
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j * material.GM0),
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j),
 				                                 e_eff_i + pertub, 0.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i + pertub, 0., lam_j, residual);
 				up = residual(i);
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j * material.GM0),
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j),
 				                                 e_eff_i - pertub, 0.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i - pertub, 0., lam_j, residual);
@@ -727,8 +726,8 @@ TEST(SolidProps, MinkleyFullJacobian)
 			else if (j < 27)
 			{
 				// Update Material parameters
-				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j * material.GM0),
-				                                 e_eff_i, 0.);
+				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j), e_eff_i,
+				                                 273.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i, 0., lam_j + pertub, residual);
 				up = residual(i);

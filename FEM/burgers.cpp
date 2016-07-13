@@ -23,6 +23,15 @@ SolidBurgers::SolidBurgers(const Math_Group::Matrix& data)
 	GK = GK0;
 	etaK = etaK0;
 	etaM = etaM0;
+
+	if (!T_Process)
+	{
+		m_GM = 0.;
+		m_KM = 0.;
+		B = 1;
+		Q = 0; // for cutting off Arrhenius term
+		T_ref = 273.15;
+	}
 }
 
 /**************************************************************************
@@ -31,11 +40,14 @@ SolidBurgers::SolidBurgers(const Math_Group::Matrix& data)
    Programing:
    07/2014 TN Implementation
 **************************************************************************/
-void SolidBurgers::UpdateBurgersProperties(const double s_eff, const double Temperature)
+void SolidBurgers::UpdateBurgersProperties(double s_eff, const double Temperature)
 {
-	double dT = Temperature - T_ref;
+	const double dT = Temperature - T_ref;
 	GM = GM0 + m_GM * dT;
 	KM = KM0 + m_KM * dT;
+
+	s_eff *= GM;
+
 	GK = GK0 * std::exp(mK * s_eff);
 	etaK = etaK0 * std::exp(mvK * s_eff);
 	etaM = etaM0 * std::exp(mvM * s_eff) * B * std::exp(Q / (PhysicalConstant::IdealGasConstant * Temperature));

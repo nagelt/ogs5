@@ -22,7 +22,7 @@ public:
 	// solution dependent values
 	double GM, KM, GK, etaK, etaM;
 
-	void UpdateBurgersProperties(const double s_eff, const double Delta_T);
+	void UpdateBurgersProperties(double s_eff, const double Delta_T);
 	void CalResidualBurgers(const double dt, const KVec& strain_curr, const KVec& stress_curr, KVec& strain_Kel_curr,
 	                        const KVec& strain_Kel_t, KVec& strain_Max_curr, const KVec& strain_Max_t,
 	                        Eigen::Matrix<double, 18, 1>& res);
