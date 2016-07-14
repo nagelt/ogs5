@@ -348,7 +348,7 @@ void SolidMinkley::CalViscoplasticResidual(const double dt, const KVec& dstrain_
 	                            - std::sqrt(2. / 3. * lam_curr * lam_curr * (double)(dev_flow.transpose() * dev_flow));
 
 	// yield function with viscoplastic regularisation
-	res.block<1, 1>(26, 0)(0) = YieldMohrCoulomb(stress_curr * GM) / GM - lam_curr * eta_reg;
+	res.block<1, 1>(26, 0)(0) = (YieldMohrCoulomb(stress_curr * GM) - lam_curr * eta_reg)/GM;
 }
 
 /**************************************************************************
@@ -621,7 +621,7 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
 	Jac.block<1, 1>(26, 25)(0) = -coh0 * hard * std::cos(phi) / GM;
 
 	// build G_77
-	Jac.block<1, 1>(26, 26)(0) = -eta_reg;
+	Jac.block<1, 1>(26, 26)(0) = -eta_reg/GM;
 }
 
 /**************************************************************************
