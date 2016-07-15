@@ -150,8 +150,8 @@ KVec SolidMinkley::DetaM_Dsigma(double sig_eff, const KVec& sigd_i)
 	else
 	{
 		res = 3. / 2. * sigd_i * GM; // sig_eff in denominator lumped into pow function (-2 instead of -1)
-		res *= -etaM0 * mvM * nvM * std::pow(sig_eff, nvM - 2.)
-		       / (std::tanh(mvM * std::pow(sig_eff, nvM)) * std::sinh(mvM * std::pow(sig_eff, nvM)));
+		res *= -etaM * mvM * nvM * std::pow(sig_eff, nvM - 2.) //etaM = etaM0/sinh(..)
+		       / std::tanh(mvM * std::pow(sig_eff, nvM));
 		return res;
 	}
 }
