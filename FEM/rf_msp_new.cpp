@@ -1740,8 +1740,6 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<dou
 	while (res_loc.norm() > Tolerance_Local_Newton && counter < counter_max)
 	{
 		counter++;
-		// Get Jacobian
-		material_burgers->CalJacobianBurgers(dt, K_loc, sig_eff, sigd_j, eps_K_j); // for solution dependent Jacobians
 		// Solve linear system
 		// inc_loc = K_loc.fullPivHouseholderQr().solve(res_loc); //other linear solvers (faster but less accurate) can
 		// be considered.
@@ -1758,6 +1756,8 @@ void CSolidProperties::LocalNewtonBurgers(const double dt, const std::vector<dou
 		material_burgers->UpdateBurgersProperties(sig_eff, Temperature);
 		// evaluation of new residual
 		material_burgers->CalResidualBurgers(dt, epsd_i, sigd_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, res_loc);
+		// Get Jacobian
+		material_burgers->CalJacobianBurgers(dt, K_loc, sig_eff, sigd_j, eps_K_j); // for solution dependent Jacobians
 		if (Output)
 		{
 			CRFProcess* m_pcs = PCSGet("DEFORMATION");
@@ -1875,8 +1875,6 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 	while (res_loc.norm() > Tolerance_Local_Newton && counter < counter_max)
 	{
 		counter++;
-		// Get Jacobian
-		material_minkley->CalViscoelasticJacobian(dt, sig_j, sig_eff, K_loc);
 		// Solve linear system; Choice of solver can be influenced by material properties/property ratios
 		//inc_loc = K_loc.fullPivHouseholderQr().solve(-res_loc);
 		//others: fullPivLu() and colPivHouseholderQr()
@@ -1891,6 +1889,8 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		// evaluation of new residual
 		material_minkley->CalViscoelasticResidual(dt, epsd_i, e_i, e_pl_v, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t,
 		                                          eps_pl_j, res_loc);
+		// Get Jacobian
+		material_minkley->CalViscoelasticJacobian(dt, sig_j, sig_eff, K_loc);
 		if (Output)
 		{
 			CRFProcess* m_pcs = PCSGet("DEFORMATION");
@@ -1910,9 +1910,6 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		while (res_loc_p.norm() > Tolerance_Local_Newton && counter < counter_max)
 		{
 			counter++;
-			// std::cout << "iter " << counter << std::endl;
-			// Get Jacobian
-			material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, K_loc_p);
 			// Solve linear system; Choice of solver can be influenced by material properties/property ratios
 			inc_loc_p = K_loc_p.fullPivLu().solve(-res_loc_p);
 			//inc_loc_p = K_loc_p.householderQr().solve(-res_loc_p);
@@ -1931,6 +1928,8 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 			material_minkley->CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t,
 			                                          eps_pl_j, eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t, lam,
 			                                          res_loc_p);
+			// Get Jacobian
+			material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, K_loc_p);
 			if (Output)
 			{
 				CRFProcess* m_pcs = PCSGet("DEFORMATION");
@@ -1947,9 +1946,6 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		material_minkley->CalEPdGdE(dGdE);
 		// get dsigdE matrix
 		ExtractConsistentTangent(K_loc_p, dGdE, true, dsigdE); // Full pivoting needed for global convergence
-		//		if (counter == counter_max)
-		//			std::cout << "WARNING: Maximum iteration number needed in LocalNewtonMinkley (VP). Convergence not "
-		//			             "guaranteed. Residual = " << res_loc_p.norm() << std::endl;
 		local_res = res_loc_p.norm();
 	}
 	else
@@ -1965,7 +1961,7 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		// guaranteed."
 		//			          << std::endl;
 		//			          << std::endl;local_res = res_loc.norm();
-		local_res = res_loc.norm();
+		local_res = -res_loc.norm(); //negative to imply that viscoelastic routine was used.
 	}
 	// add hydrostatic part to stress and tangent
 	sig_j *= material_minkley->GM;

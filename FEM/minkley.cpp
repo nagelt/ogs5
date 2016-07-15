@@ -175,9 +175,9 @@ void SolidMinkley::CalViscoelasticResidual(const double dt, const KVec& dstrain_
 	                                       + KM / GM * (e_curr - e_p_curr) * SolidMath::ivec);
 	// calculate Kelvin strain residual
 	res.block<6, 1>(6, 0) = (dstrain_Kel_curr - dstrain_Kel_t) / dt
-	                        - 1. / (2. * etaK0) * (dstress_curr - 2. * GK0 * dstrain_Kel_curr);
+	                        - (dstress_curr - 2. * GK0 * dstrain_Kel_curr) / (2. * etaK0);
 	// calculate Kelvin strain residual
-	res.block<6, 1>(12, 0) = (dstrain_Max_curr - dstrain_Max_t) / dt - 1. / (2. * etaM) * dstress_curr;
+	res.block<6, 1>(12, 0) = (dstrain_Max_curr - dstrain_Max_t) / dt - dstress_curr / (2. * etaM);
 }
 
 /**************************************************************************
@@ -332,10 +332,10 @@ void SolidMinkley::CalViscoplasticResidual(const double dt, const KVec& dstrain_
 
 	// calculate deviatoric Kelvin strain residual
 	res.block<6, 1>(6, 0) = (dstrain_Kel_curr - dstrain_Kel_t) / dt
-	                        - 1. / (2. * etaK0) * (sigd_curr - 2. * GK0 * dstrain_Kel_curr);
+	                        - (sigd_curr - 2. * GK0 * dstrain_Kel_curr) / (2. * etaK0);
 
 	// calculate deviatoric Maxwell strain residual
-	res.block<6, 1>(12, 0) = (dstrain_Max_curr - dstrain_Max_t) / dt - 1. / (2. * etaM) * sigd_curr;
+	res.block<6, 1>(12, 0) = (dstrain_Max_curr - dstrain_Max_t) / dt - sigd_curr / (2. * etaM);
 
 	// calculate deviatoric plastic strain residual
 	res.block<6, 1>(18, 0) = (dstrain_pl_curr - dstrain_pl_t) / dt - lam_curr * dev_flow;
