@@ -582,7 +582,7 @@ TEST(SolidProps, MinkleyFullJacobian)
 	Eigen::Matrix<double, 27, 1> residual;
 
 	// set a strain increment and perform Kelvin mapping
-	std::vector<double> strain_bc;
+	std::vector<double> strain_bc(6);
 	strain_bc[0] = 0.01;
 	strain_bc[1] = 0.02;
 	strain_bc[2] = 0.03;
@@ -712,13 +712,13 @@ TEST(SolidProps, MinkleyFullJacobian)
 			{
 				// Update Material parameters
 				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j),
-				                                 e_eff_i + pertub, 0.);
+												 e_eff_i + pertub, 273.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i + pertub, 0., lam_j, residual);
 				up = residual(i);
 				// Update Material parameters
 				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j),
-				                                 e_eff_i - pertub, 0.);
+												 e_eff_i - pertub, 273.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i - pertub, 0., lam_j, residual);
 				low = residual(i);

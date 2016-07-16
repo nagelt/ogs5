@@ -2526,7 +2526,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 
 				double e_pl_v = (*eleV_DM->e_pl)(gp);
 				double e_pl_eff = (*eleV_DM->pStrain)(gp);
-				double lam = 0.; //(*eleV_DM->lambda_pl)(gp);
+				double lam = (*eleV_DM->lambda_pl)(gp);//NOTE: May set starting value to zero in case of trouble with load reversals
 
 				// 6x6 tangent
 				Matrix ConsD(6, 6);
