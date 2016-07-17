@@ -4,14 +4,27 @@
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
-// This Source Code Form is subject to the terms of the Mozilla
-// Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef EIGEN_TRIDIAGONALIZATION_H
 #define EIGEN_TRIDIAGONALIZATION_H
-
-namespace Eigen { 
 
 namespace internal {
   
@@ -84,19 +97,19 @@ template<typename _MatrixType> class Tridiagonalization
     typedef internal::TridiagonalizationMatrixTReturnType<MatrixTypeRealView> MatrixTReturnType;
 
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-              typename internal::add_const_on_value_type<typename Diagonal<const MatrixType>::RealReturnType>::type,
+              const typename Diagonal<const MatrixType>::RealReturnType,
               const Diagonal<const MatrixType>
             >::type DiagonalReturnType;
 
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-              typename internal::add_const_on_value_type<typename Diagonal<
-                Block<const MatrixType,SizeMinusOne,SizeMinusOne> >::RealReturnType>::type,
+              const typename Diagonal<
+                Block<const MatrixType,SizeMinusOne,SizeMinusOne> >::RealReturnType,
               const Diagonal<
                 Block<const MatrixType,SizeMinusOne,SizeMinusOne> >
             >::type SubDiagonalReturnType;
 
     /** \brief Return type of matrixQ() */
-    typedef HouseholderSequence<MatrixType,typename internal::remove_all<typename CoeffVectorType::ConjugateReturnType>::type> HouseholderSequenceType;
+    typedef typename HouseholderSequence<MatrixType,CoeffVectorType>::ConjugateReturnType HouseholderSequenceType;
 
     /** \brief Default constructor.
       *
@@ -345,7 +358,6 @@ namespace internal {
 template<typename MatrixType, typename CoeffVectorType>
 void tridiagonalization_inplace(MatrixType& matA, CoeffVectorType& hCoeffs)
 {
-  using numext::conj;
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
@@ -426,6 +438,8 @@ struct tridiagonalization_inplace_selector;
 template<typename MatrixType, typename DiagonalType, typename SubDiagonalType>
 void tridiagonalization_inplace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
 {
+  typedef typename MatrixType::Index Index;
+  //Index n = mat.rows();
   eigen_assert(mat.cols()==mat.rows() && diag.size()==mat.rows() && subdiag.size()==mat.rows()-1);
   tridiagonalization_inplace_selector<MatrixType>::run(mat, diag, subdiag, extractQ);
 }
@@ -466,9 +480,8 @@ struct tridiagonalization_inplace_selector<MatrixType,3,false>
   template<typename DiagonalType, typename SubDiagonalType>
   static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
   {
-    using std::sqrt;
     diag[0] = mat(0,0);
-    RealScalar v1norm2 = numext::abs2(mat(2,0));
+    RealScalar v1norm2 = abs2(mat(2,0));
     if(v1norm2 == RealScalar(0))
     {
       diag[1] = mat(1,1);
@@ -480,7 +493,7 @@ struct tridiagonalization_inplace_selector<MatrixType,3,false>
     }
     else
     {
-      RealScalar beta = sqrt(numext::abs2(mat(1,0)) + v1norm2);
+      RealScalar beta = sqrt(abs2(mat(1,0)) + v1norm2);
       RealScalar invBeta = RealScalar(1)/beta;
       Scalar m01 = mat(1,0) * invBeta;
       Scalar m02 = mat(2,0) * invBeta;
@@ -510,7 +523,7 @@ struct tridiagonalization_inplace_selector<MatrixType,1,IsComplex>
   template<typename DiagonalType, typename SubDiagonalType>
   static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType&, bool extractQ)
   {
-    diag(0,0) = numext::real(mat(0,0));
+    diag(0,0) = real(mat(0,0));
     if(extractQ)
       mat(0,0) = Scalar(1);
   }
@@ -547,11 +560,9 @@ template<typename MatrixType> struct TridiagonalizationMatrixTReturnType
     Index cols() const { return m_matrix.cols(); }
 
   protected:
-    typename MatrixType::Nested m_matrix;
+    const typename MatrixType::Nested m_matrix;
 };
 
 } // end namespace internal
-
-} // end namespace Eigen
 
 #endif // EIGEN_TRIDIAGONALIZATION_H

@@ -3,14 +3,27 @@
 //
 // Copyright (C) 2010-2011 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// This Source Code Form is subject to the terms of the Mozilla
-// Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef EIGEN_TRANSPOSITIONS_H
 #define EIGEN_TRANSPOSITIONS_H
-
-namespace Eigen { 
 
 /** \class Transpositions
   * \ingroup Core_Module
@@ -99,9 +112,9 @@ class TranspositionsBase
     IndicesType& indices() { return derived().indices(); }
 
     /** Resizes to given size. */
-    inline void resize(int newSize)
+    inline void resize(int size)
     {
-      indices().resize(newSize);
+      indices().resize(size);
     }
 
     /** Sets \c *this to represents an identity transformation */
@@ -177,7 +190,7 @@ class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTim
 
     /** Generic constructor from expression of the transposition indices. */
     template<typename Other>
-    explicit inline Transpositions(const MatrixBase<Other>& a_indices) : m_indices(a_indices)
+    explicit inline Transpositions(const MatrixBase<Other>& indices) : m_indices(indices)
     {}
 
     /** Copies the \a other transpositions into \c *this */
@@ -234,12 +247,12 @@ class Map<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,IndexType>,Packe
     typedef typename Traits::IndicesType IndicesType;
     typedef typename IndicesType::Scalar Index;
 
-    inline Map(const Index* indicesPtr)
-      : m_indices(indicesPtr)
+    inline Map(const Index* indices)
+      : m_indices(indices)
     {}
 
-    inline Map(const Index* indicesPtr, Index size)
-      : m_indices(indicesPtr,size)
+    inline Map(const Index* indices, Index size)
+      : m_indices(indices,size)
     {}
 
     /** Copies the \a other transpositions into \c *this */
@@ -291,8 +304,8 @@ class TranspositionsWrapper
     typedef typename Traits::IndicesType IndicesType;
     typedef typename IndicesType::Scalar Index;
 
-    inline TranspositionsWrapper(IndicesType& a_indices)
-      : m_indices(a_indices)
+    inline TranspositionsWrapper(IndicesType& indices)
+      : m_indices(indices)
     {}
 
     /** Copies the \a other transpositions into \c *this */
@@ -391,7 +404,7 @@ struct transposition_matrix_product_retval
 
   protected:
     const TranspositionType& m_transpositions;
-    typename MatrixType::Nested m_matrix;
+    const typename MatrixType::Nested m_matrix;
 };
 
 } // end namespace internal
@@ -430,7 +443,5 @@ class Transpose<TranspositionsBase<TranspositionsDerived> >
   protected:
     const TranspositionType& m_transpositions;
 };
-
-} // end namespace Eigen
 
 #endif // EIGEN_TRANSPOSITIONS_H

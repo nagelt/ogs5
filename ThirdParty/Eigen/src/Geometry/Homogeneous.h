@@ -3,14 +3,27 @@
 //
 // Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// This Source Code Form is subject to the terms of the Mozilla
-// Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef EIGEN_HOMOGENEOUS_H
 #define EIGEN_HOMOGENEOUS_H
-
-namespace Eigen { 
 
 /** \geometry_module \ingroup Geometry_Module
   *
@@ -59,7 +72,7 @@ template<typename MatrixType,typename Rhs> struct homogeneous_right_product_impl
 } // end namespace internal
 
 template<typename MatrixType,int _Direction> class Homogeneous
-  : internal::no_assignment_operator, public MatrixBase<Homogeneous<MatrixType,_Direction> >
+  : public MatrixBase<Homogeneous<MatrixType,_Direction> >
 {
   public:
 
@@ -79,7 +92,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
     {
       if(  (int(Direction)==Vertical   && row==m_matrix.rows())
         || (int(Direction)==Horizontal && col==m_matrix.cols()))
-        return Scalar(1);
+        return 1;
       return m_matrix.coeff(row, col);
     }
 
@@ -108,7 +121,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
     }
 
   protected:
-    typename MatrixType::Nested m_matrix;
+    const typename MatrixType::Nested m_matrix;
 };
 
 /** \geometry_module
@@ -203,8 +216,8 @@ template<typename Scalar, int Dim, int Mode,int Options>
 struct take_matrix_for_product<Transform<Scalar, Dim, Mode, Options> >
 {
   typedef Transform<Scalar, Dim, Mode, Options> TransformType;
-  typedef typename internal::add_const<typename TransformType::ConstAffinePart>::type type;
-  static type run (const TransformType& x) { return x.affine(); }
+  typedef typename TransformType::ConstAffinePart type;
+  static const type run (const TransformType& x) { return x.affine(); }
 };
 
 template<typename Scalar, int Dim, int Options>
@@ -257,8 +270,8 @@ struct homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
             .template replicate<MatrixType::ColsAtCompileTime>(m_rhs.cols());
   }
 
-  typename LhsMatrixTypeCleaned::Nested m_lhs;
-  typename MatrixType::Nested m_rhs;
+  const typename LhsMatrixTypeCleaned::Nested m_lhs;
+  const typename MatrixType::Nested m_rhs;
 };
 
 template<typename MatrixType,typename Rhs>
@@ -296,12 +309,10 @@ struct homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
             .template replicate<MatrixType::RowsAtCompileTime>(m_lhs.rows());
   }
 
-  typename MatrixType::Nested m_lhs;
-  typename Rhs::Nested m_rhs;
+  const typename MatrixType::Nested m_lhs;
+  const typename Rhs::Nested m_rhs;
 };
 
 } // end namespace internal
-
-} // end namespace Eigen
 
 #endif // EIGEN_HOMOGENEOUS_H

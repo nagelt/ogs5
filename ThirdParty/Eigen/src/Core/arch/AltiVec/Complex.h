@@ -3,14 +3,27 @@
 //
 // Copyright (C) 2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// This Source Code Form is subject to the terms of the Mozilla
-// Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef EIGEN_COMPLEX_ALTIVEC_H
 #define EIGEN_COMPLEX_ALTIVEC_H
-
-namespace Eigen {
 
 namespace internal {
 
@@ -155,7 +168,7 @@ template<> EIGEN_STRONG_INLINE std::complex<float> predux_mul<Packet2cf>(const P
 template<int Offset>
 struct palign_impl<Offset,Packet2cf>
 {
-  static EIGEN_STRONG_INLINE void run(Packet2cf& first, const Packet2cf& second)
+  EIGEN_STRONG_INLINE static void run(Packet2cf& first, const Packet2cf& second)
   {
     if (Offset==1)
     {
@@ -211,7 +224,5 @@ template<> EIGEN_STRONG_INLINE Packet2cf pcplxflip<Packet2cf>(const Packet2cf& x
 }
 
 } // end namespace internal
-
-} // end namespace Eigen
 
 #endif // EIGEN_COMPLEX_ALTIVEC_H

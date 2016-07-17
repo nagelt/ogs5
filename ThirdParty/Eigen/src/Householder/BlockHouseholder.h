@@ -4,16 +4,29 @@
 // Copyright (C) 2010 Vincent Lejeune
 // Copyright (C) 2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// This Source Code Form is subject to the terms of the Mozilla
-// Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef EIGEN_BLOCK_HOUSEHOLDER_H
 #define EIGEN_BLOCK_HOUSEHOLDER_H
 
 // This file contains some helper function to deal with block householder reflectors
-
-namespace Eigen { 
 
 namespace internal {
 
@@ -48,10 +61,10 @@ void apply_block_householder_on_the_left(MatrixType& mat, const VectorsType& vec
   typedef typename MatrixType::Index Index;
   enum { TFactorSize = MatrixType::ColsAtCompileTime };
   Index nbVecs = vectors.cols();
-  Matrix<typename MatrixType::Scalar, TFactorSize, TFactorSize, ColMajor> T(nbVecs,nbVecs);
+  Matrix<typename MatrixType::Scalar, TFactorSize, TFactorSize> T(nbVecs,nbVecs);
   make_block_householder_triangular_factor(T, vectors, hCoeffs);
 
-  const TriangularView<const VectorsType, UnitLower>& V(vectors);
+  const TriangularView<VectorsType, UnitLower>& V(vectors);
 
   // A -= V T V^* A
   Matrix<typename MatrixType::Scalar,VectorsType::ColsAtCompileTime,MatrixType::ColsAtCompileTime,0,
@@ -62,7 +75,5 @@ void apply_block_householder_on_the_left(MatrixType& mat, const VectorsType& vec
 }
 
 } // end namespace internal
-
-} // end namespace Eigen
 
 #endif // EIGEN_BLOCK_HOUSEHOLDER_H

@@ -13,6 +13,8 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+namespace Eigen {
+
 /** \defgroup Geometry_Module Geometry module
   *
   *
@@ -55,6 +57,8 @@
 #ifdef EIGEN2_SUPPORT
 #include "src/Eigen2Support/Geometry/All.h"
 #endif
+
+} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

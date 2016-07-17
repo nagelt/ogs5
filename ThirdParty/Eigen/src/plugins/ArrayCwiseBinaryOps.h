@@ -29,22 +29,6 @@ operator/(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   */
 EIGEN_MAKE_CWISE_BINARY_OP(min,internal::scalar_min_op)
 
-/** \returns an expression of the coefficient-wise min of \c *this and scalar \a other
-  *
-  * \sa max()
-  */
-EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_min_op<Scalar>, const Derived,
-                                        const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject> >
-#ifdef EIGEN_PARSED_BY_DOXYGEN
-min
-#else
-(min)
-#endif
-(const Scalar &other) const
-{
-  return (min)(Derived::PlainObject::Constant(rows(), cols(), other));
-}
-
 /** \returns an expression of the coefficient-wise max of \c *this and \a other
   *
   * Example: \include Cwise_max.cpp
@@ -54,59 +38,6 @@ min
   */
 EIGEN_MAKE_CWISE_BINARY_OP(max,internal::scalar_max_op)
 
-/** \returns an expression of the coefficient-wise max of \c *this and scalar \a other
-  *
-  * \sa min()
-  */
-EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_max_op<Scalar>, const Derived,
-                                        const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject> >
-#ifdef EIGEN_PARSED_BY_DOXYGEN
-max
-#else
-(max)
-#endif
-(const Scalar &other) const
-{
-  return (max)(Derived::PlainObject::Constant(rows(), cols(), other));
-}
-
-
-#define EIGEN_MAKE_CWISE_COMP_OP(OP, COMPARATOR) \
-template<typename OtherDerived> \
-EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_ ## COMPARATOR>, const Derived, const OtherDerived> \
-OP(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const \
-{ \
-  return CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_ ## COMPARATOR>, const Derived, const OtherDerived>(derived(), other.derived()); \
-}\
-typedef CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_ ## COMPARATOR>, const Derived, const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject> > Cmp ## COMPARATOR ## ReturnType; \
-typedef CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_ ## COMPARATOR>, const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject>, const Derived > RCmp ## COMPARATOR ## ReturnType; \
-EIGEN_STRONG_INLINE const Cmp ## COMPARATOR ## ReturnType \
-OP(const Scalar& s) const { \
-  return this->OP(Derived::PlainObject::Constant(rows(), cols(), s)); \
-} \
-friend EIGEN_STRONG_INLINE const RCmp ## COMPARATOR ## ReturnType \
-OP(const Scalar& s, const Derived& d) { \
-  return Derived::PlainObject::Constant(d.rows(), d.cols(), s).OP(d); \
-}
-
-#define EIGEN_MAKE_CWISE_COMP_R_OP(OP, R_OP, RCOMPARATOR) \
-template<typename OtherDerived> \
-EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_##RCOMPARATOR>, const OtherDerived, const Derived> \
-OP(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const \
-{ \
-  return CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_##RCOMPARATOR>, const OtherDerived, const Derived>(other.derived(), derived()); \
-} \
-\
-inline const RCmp ## RCOMPARATOR ## ReturnType \
-OP(const Scalar& s) const { \
-  return Derived::PlainObject::Constant(rows(), cols(), s).R_OP(*this); \
-} \
-friend inline const Cmp ## RCOMPARATOR ## ReturnType \
-OP(const Scalar& s, const Derived& d) { \
-  return d.R_OP(Derived::PlainObject::Constant(d.rows(), d.cols(), s)); \
-}
-
-
 /** \returns an expression of the coefficient-wise \< operator of *this and \a other
   *
   * Example: \include Cwise_less.cpp
@@ -114,7 +45,7 @@ OP(const Scalar& s, const Derived& d) { \
   *
   * \sa all(), any(), operator>(), operator<=()
   */
-EIGEN_MAKE_CWISE_COMP_OP(operator<, LT)
+EIGEN_MAKE_CWISE_BINARY_OP(operator<,std::less)
 
 /** \returns an expression of the coefficient-wise \<= operator of *this and \a other
   *
@@ -123,7 +54,7 @@ EIGEN_MAKE_CWISE_COMP_OP(operator<, LT)
   *
   * \sa all(), any(), operator>=(), operator<()
   */
-EIGEN_MAKE_CWISE_COMP_OP(operator<=, LE)
+EIGEN_MAKE_CWISE_BINARY_OP(operator<=,std::less_equal)
 
 /** \returns an expression of the coefficient-wise \> operator of *this and \a other
   *
@@ -132,7 +63,7 @@ EIGEN_MAKE_CWISE_COMP_OP(operator<=, LE)
   *
   * \sa all(), any(), operator>=(), operator<()
   */
-EIGEN_MAKE_CWISE_COMP_R_OP(operator>, operator<, LT)
+EIGEN_MAKE_CWISE_BINARY_OP(operator>,std::greater)
 
 /** \returns an expression of the coefficient-wise \>= operator of *this and \a other
   *
@@ -141,7 +72,7 @@ EIGEN_MAKE_CWISE_COMP_R_OP(operator>, operator<, LT)
   *
   * \sa all(), any(), operator>(), operator<=()
   */
-EIGEN_MAKE_CWISE_COMP_R_OP(operator>=, operator<=, LE)
+EIGEN_MAKE_CWISE_BINARY_OP(operator>=,std::greater_equal)
 
 /** \returns an expression of the coefficient-wise == operator of *this and \a other
   *
@@ -155,7 +86,7 @@ EIGEN_MAKE_CWISE_COMP_R_OP(operator>=, operator<=, LE)
   *
   * \sa all(), any(), isApprox(), isMuchSmallerThan()
   */
-EIGEN_MAKE_CWISE_COMP_OP(operator==, EQ)
+EIGEN_MAKE_CWISE_BINARY_OP(operator==,std::equal_to)
 
 /** \returns an expression of the coefficient-wise != operator of *this and \a other
   *
@@ -169,10 +100,7 @@ EIGEN_MAKE_CWISE_COMP_OP(operator==, EQ)
   *
   * \sa all(), any(), isApprox(), isMuchSmallerThan()
   */
-EIGEN_MAKE_CWISE_COMP_OP(operator!=, NEQ)
-
-#undef EIGEN_MAKE_CWISE_COMP_OP
-#undef EIGEN_MAKE_CWISE_COMP_R_OP
+EIGEN_MAKE_CWISE_BINARY_OP(operator!=,std::not_equal_to)
 
 // scalar addition
 
@@ -213,41 +141,3 @@ operator-(const Scalar& scalar,const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& 
 {
   return (-other) + scalar;
 }
-
-/** \returns an expression of the coefficient-wise && operator of *this and \a other
-  *
-  * \warning this operator is for expression of bool only.
-  *
-  * Example: \include Cwise_boolean_and.cpp
-  * Output: \verbinclude Cwise_boolean_and.out
-  *
-  * \sa operator||(), select()
-  */
-template<typename OtherDerived>
-inline const CwiseBinaryOp<internal::scalar_boolean_and_op, const Derived, const OtherDerived>
-operator&&(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
-{
-  EIGEN_STATIC_ASSERT((internal::is_same<bool,Scalar>::value && internal::is_same<bool,typename OtherDerived::Scalar>::value),
-                      THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
-  return CwiseBinaryOp<internal::scalar_boolean_and_op, const Derived, const OtherDerived>(derived(),other.derived());
-}
-
-/** \returns an expression of the coefficient-wise || operator of *this and \a other
-  *
-  * \warning this operator is for expression of bool only.
-  *
-  * Example: \include Cwise_boolean_or.cpp
-  * Output: \verbinclude Cwise_boolean_or.out
-  *
-  * \sa operator&&(), select()
-  */
-template<typename OtherDerived>
-inline const CwiseBinaryOp<internal::scalar_boolean_or_op, const Derived, const OtherDerived>
-operator||(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
-{
-  EIGEN_STATIC_ASSERT((internal::is_same<bool,Scalar>::value && internal::is_same<bool,typename OtherDerived::Scalar>::value),
-                      THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
-  return CwiseBinaryOp<internal::scalar_boolean_or_op, const Derived, const OtherDerived>(derived(),other.derived());
-}
-
-

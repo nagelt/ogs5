@@ -3,14 +3,27 @@
 //
 // Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// This Source Code Form is subject to the terms of the Mozilla
-// Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef EIGEN_CWISE_UNARY_VIEW_H
 #define EIGEN_CWISE_UNARY_VIEW_H
-
-namespace Eigen {
 
 /** \class CwiseUnaryView
   * \ingroup Core_Module
@@ -38,16 +51,15 @@ struct traits<CwiseUnaryView<ViewOp, MatrixType> >
   typedef typename remove_all<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     Flags = (traits<_MatrixTypeNested>::Flags & (HereditaryBits | LvalueBit | LinearAccessBit | DirectAccessBit)),
-    CoeffReadCost = EIGEN_ADD_COST(traits<_MatrixTypeNested>::CoeffReadCost, functor_traits<ViewOp>::Cost),
+    CoeffReadCost = traits<_MatrixTypeNested>::CoeffReadCost + functor_traits<ViewOp>::Cost,
     MatrixTypeInnerStride =  inner_stride_at_compile_time<MatrixType>::ret,
     // need to cast the sizeof's from size_t to int explicitly, otherwise:
     // "error: no integral type can represent all of the enumerator values
     InnerStrideAtCompileTime = MatrixTypeInnerStride == Dynamic
                              ? int(Dynamic)
-                             : int(MatrixTypeInnerStride) * int(sizeof(typename traits<MatrixType>::Scalar) / sizeof(Scalar)),
-    OuterStrideAtCompileTime = outer_stride_at_compile_time<MatrixType>::ret == Dynamic
-                             ? int(Dynamic)
-                             : outer_stride_at_compile_time<MatrixType>::ret * int(sizeof(typename traits<MatrixType>::Scalar) / sizeof(Scalar))
+                             : int(MatrixTypeInnerStride)
+                               * int(sizeof(typename traits<MatrixType>::Scalar) / sizeof(Scalar)),
+    OuterStrideAtCompileTime = outer_stride_at_compile_time<MatrixType>::ret
   };
 };
 }
@@ -56,7 +68,8 @@ template<typename ViewOp, typename MatrixType, typename StorageKind>
 class CwiseUnaryViewImpl;
 
 template<typename ViewOp, typename MatrixType>
-class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename internal::traits<MatrixType>::StorageKind>
+class CwiseUnaryView : internal::no_assignment_operator,
+  public CwiseUnaryViewImpl<ViewOp, MatrixType, typename internal::traits<MatrixType>::StorageKind>
 {
   public:
 
@@ -84,7 +97,7 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename in
 
   protected:
     // FIXME changed from MatrixType::Nested because of a weird compilation error with sun CC
-    typename internal::nested<MatrixType>::type m_matrix;
+    const typename internal::nested<MatrixType>::type m_matrix;
     ViewOp m_functor;
 };
 
@@ -98,10 +111,6 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     typedef typename internal::dense_xpr_base< CwiseUnaryView<ViewOp, MatrixType> >::type Base;
 
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(CwiseUnaryViewImpl)
-    
-    inline Scalar* data() { return &coeffRef(0); }
-    inline const Scalar* data() const { return &coeff(0); }
 
     inline Index innerStride() const
     {
@@ -110,7 +119,7 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
 
     inline Index outerStride() const
     {
-      return derived().nestedExpression().outerStride() * sizeof(typename internal::traits<MatrixType>::Scalar) / sizeof(Scalar);
+      return derived().nestedExpression().outerStride();
     }
 
     EIGEN_STRONG_INLINE CoeffReturnType coeff(Index row, Index col) const
@@ -134,6 +143,6 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     }
 };
 
-} // end namespace Eigen
+
 
 #endif // EIGEN_CWISE_UNARY_VIEW_H

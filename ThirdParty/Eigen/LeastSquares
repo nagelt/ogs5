@@ -15,6 +15,8 @@
 #include "Eigenvalues"
 #include "Geometry"
 
+namespace Eigen {
+
 /** \defgroup LeastSquares_Module LeastSquares module
   * This module provides linear regression and related features.
   *
@@ -24,6 +26,8 @@
   */
 
 #include "src/Eigen2Support/LeastSquares.h"
+
+} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

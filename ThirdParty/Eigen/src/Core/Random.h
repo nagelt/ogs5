@@ -3,14 +3,27 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// This Source Code Form is subject to the terms of the Mozilla
-// Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef EIGEN_RANDOM_H
 #define EIGEN_RANDOM_H
-
-namespace Eigen { 
 
 namespace internal {
 
@@ -112,7 +125,7 @@ inline Derived& DenseBase<Derived>::setRandom()
   return *this = Random(rows(), cols());
 }
 
-/** Resizes to the given \a newSize, and sets all coefficients in this expression to random values.
+/** Resizes to the given \a size, and sets all coefficients in this expression to random values.
   *
   * \only_for_vectors
   *
@@ -123,16 +136,16 @@ inline Derived& DenseBase<Derived>::setRandom()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-PlainObjectBase<Derived>::setRandom(Index newSize)
+PlainObjectBase<Derived>::setRandom(Index size)
 {
-  resize(newSize);
+  resize(size);
   return setRandom();
 }
 
 /** Resizes to the given size, and sets all coefficients in this expression to random values.
   *
-  * \param nbRows the new number of rows
-  * \param nbCols the new number of columns
+  * \param rows the new number of rows
+  * \param cols the new number of columns
   *
   * Example: \include Matrix_setRandom_int_int.cpp
   * Output: \verbinclude Matrix_setRandom_int_int.out
@@ -141,12 +154,10 @@ PlainObjectBase<Derived>::setRandom(Index newSize)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-PlainObjectBase<Derived>::setRandom(Index nbRows, Index nbCols)
+PlainObjectBase<Derived>::setRandom(Index rows, Index cols)
 {
-  resize(nbRows, nbCols);
+  resize(rows, cols);
   return setRandom();
 }
-
-} // end namespace Eigen
 
 #endif // EIGEN_RANDOM_H
