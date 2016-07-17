@@ -1901,7 +1901,6 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 	{
 		Eigen::Matrix<double, 27, 1> res_loc_p, inc_loc_p;
 		Eigen::Matrix<double, 27, 27> K_loc_p;
-
 		material_minkley->CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 		                                          eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t, lam, res_loc_p);
 		material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, K_loc_p);
@@ -1917,7 +1916,7 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 			// increment solution vectors
 			sig_j += inc_loc_p.block<6, 1>(0, 0);
 			eps_K_j += inc_loc_p.block<6, 1>(6, 0);
-			eps_M_j += inc_loc.block<6, 1>(12, 0);
+			eps_M_j += inc_loc_p.block<6, 1>(12, 0);
 			eps_pl_j += inc_loc_p.block<6, 1>(18, 0);
 			e_pl_v += inc_loc_p.block<1, 1>(24, 0)(0);
 			e_pl_eff += inc_loc_p.block<1, 1>(25, 0)(0);
