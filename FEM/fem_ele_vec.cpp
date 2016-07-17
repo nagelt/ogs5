@@ -2536,7 +2536,7 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				//                    output = true;
 				// Pass as 6D vectors, i.e. set stress and strain [4] and [5] to zero for 2D and AXI as well as
 				// strain[3] to zero for 2D (plane strain)
-				double local_res;
+				double local_res(0.);
 				smat->LocalNewtonMinkley(dt, strain_curr, stress_curr, eps_K_curr, eps_M_curr, eps_pl_curr, e_pl_v,
 				                         e_pl_eff, lam, ConsD, output, t1, local_res);
 
@@ -2986,18 +2986,20 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			}
 
 			// Average value of the contribution of ell neighbor elements
-			ESxx /= dbuff[i];
-			ESyy /= dbuff[i];
-			ESxy /= dbuff[i];
-			ESzz /= dbuff[i];
-			Pls /= dbuff[i];
-			Dil /= dbuff[i];
-			Res /= dbuff[i];
+			const int nr_connected_elements = dbuff[i];
+			ESxx /= nr_connected_elements;
+			ESyy /= nr_connected_elements;
+			ESxy /= nr_connected_elements;
+			ESzz /= nr_connected_elements;
+			Pls /= nr_connected_elements;
+			Dil /= nr_connected_elements;
+			Res /= nr_connected_elements;
 			//
-			long node_i = nodes[i];
+			const long node_i = nodes[i];
 			ESxx += pcs->GetNodeValue(node_i, Idx_Stress[0]);
 			ESyy += pcs->GetNodeValue(node_i, Idx_Stress[1]);
 			ESzz += pcs->GetNodeValue(node_i, Idx_Stress[2]);
+
 			ESxy += pcs->GetNodeValue(node_i, Idx_Stress[3]);
 			if (eleV_DM->pStrain) // 08.02.2008 WW
 				Pls += pcs->GetNodeValue(node_i, idx_pls);
@@ -3019,8 +3021,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 
 			if (ele_dim == 3)
 			{
-				ESxz /= dbuff[i];
-				ESyz /= dbuff[i];
+				ESxz /= nr_connected_elements;
+				ESyz /= nr_connected_elements;
 
 				ESxz += pcs->GetNodeValue(node_i, Idx_Stress[4]);
 				ESyz += pcs->GetNodeValue(node_i, Idx_Stress[5]);

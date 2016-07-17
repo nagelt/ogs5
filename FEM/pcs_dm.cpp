@@ -2089,7 +2089,7 @@ void CRFProcessDeformation::Extropolation_GaussValue()
 
 	for (i = 0; i < LowOrderNodes; i++)
 	{
-		for (k = 0; k < NS; k++)
+		for (k = 0; k < NS+1; k++)
 			SetNodeValue(i, Idx_Stress[k], 0.0);
 		for (k = 0; k < 3; k++)
 			SetNodeValue(i, stressPrincipleIndices[k], 0.0);
