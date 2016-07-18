@@ -25,7 +25,7 @@ public:
 	// solution dependent values
 	double etaM, GM, KM;
 	// Parameters for Minkley model
-	double nvM, coh0, hard, phi, psi, thetaT, eta_reg;
+	double nvM, coh0, hard, phi, psi, thetaT, eta_reg, hard2, hard4;
 	// solution dependent
 	double coh;
 	double m_GM; // slope of elesticity temperature dependence
@@ -50,7 +50,7 @@ public:
 	                             const double e_pl_eff_curr, const double e_pl_eff_t, const double lam_curr,
 	                             Eigen::Matrix<double, 27, 1>& res);
 	void CalViscoplasticJacobian(const double dt, const KVec& stress_curr, const double sig_eff, const double lam_curr,
-	                             Eigen::Matrix<double, 27, 27>& Jac);
+	                             const double e_eff_i, Eigen::Matrix<double, 27, 27>& Jac);
 	void CalEPdGdE(Eigen::Matrix<double, 27, 6>& dGdE);
 
 private:

@@ -50,9 +50,10 @@ void SolidBurgers::UpdateBurgersProperties(double s_eff, const double Temperatur
 
 	GK = GK0 * std::exp(mK * s_eff);
 	etaK = etaK0 * std::exp(mvK * s_eff);
-	etaM = etaM0 * std::exp(mvM * s_eff) * B * std::exp(Q *(-dT) / (PhysicalConstant::IdealGasConstant * Temperature * T_ref));
-//	if (etaM / etaM0 < 1.e-2)
-//		std::cout << "WARNING: Maxwell viscosity sank to 100th of original value." << std::endl;
+	etaM = etaM0 * std::exp(mvM * s_eff) * B
+	       * std::exp(Q * (-dT) / (PhysicalConstant::IdealGasConstant * Temperature * T_ref));
+	//	if (etaM / etaM0 < 1.e-2)
+	//		std::cout << "WARNING: Maxwell viscosity sank to 100th of original value." << std::endl;
 }
 
 /**************************************************************************

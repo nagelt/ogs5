@@ -599,7 +599,10 @@ std::ios::pos_type CSolidProperties::Read(std::ifstream* msp_file)
 				data_Creep = new Matrix(13);
 				in_sd.str(GetLineFromFile1(msp_file));
 				for (i = 0; i < 13; i++)
+				{
+					(*data_Creep)(i) = 0.;
 					in_sd >> (*data_Creep)(i);
+				}
 				in_sd.clear();
 
 				// Local Newton scheme for Burgers model. TN 06.06.2014
@@ -628,11 +631,15 @@ std::ios::pos_type CSolidProperties::Read(std::ifstream* msp_file)
 				// 15: T_ref // reference temperature;
 				// 16: B // constant factor for Arrhenius term
 				// 17: Q // activation energy in Arrhenius term
+				// 18: h2 // second order hardening term
+				// 19: h4 // fourth order hardening term
 
-				data_Creep = new Matrix(18);
+				data_Creep = new Matrix(20);
 				in_sd.str(GetLineFromFile1(msp_file));
-				for (i = 0; i < 18; i++)
+				for (i = 0; i < 20; i++){
+					(*data_Creep)(i) = 0.;
 					in_sd >> (*data_Creep)(i);
+				}
 				in_sd.clear();
 
 				// Local Newton scheme for Burgers model. TN 06.06.2014
@@ -1906,7 +1913,7 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		Eigen::Matrix<double, 27, 27> K_loc_p;
 		material_minkley->CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 		                                          eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t, lam, res_loc_p);
-		material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, K_loc_p);
+		material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, e_pl_eff, K_loc_p);
 		while (res_loc_p.norm() > Tolerance_Local_Newton && counter < 2*counter_max)
 		{
 			counter++;
@@ -1929,7 +1936,7 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 			                                          eps_pl_j, eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t, lam,
 			                                          res_loc_p);
 			// Get Jacobian
-			material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, K_loc_p);
+			material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, e_pl_eff, K_loc_p);
 			if (Output)
 			{
 				CRFProcess* m_pcs = PCSGet("DEFORMATION");

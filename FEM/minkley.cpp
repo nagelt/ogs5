@@ -39,6 +39,8 @@ SolidMinkley::SolidMinkley(const Math_Group::Matrix& data)
 	T_ref = data(15); // reference temperature dependency parameter for "
 	Bt = data(16); // constant factor for Arrhenius term
 	Q = data(17); // activation energy in Arrhenius term
+	hard2 = data(18); //second order hardening term
+	hard4 = data(19); //second order hardening term
 
 	etaM = etaM0;
 	coh = coh0;
@@ -73,11 +75,16 @@ void SolidMinkley::UpdateMinkleyProperties(double s_eff, const double eps_p_eff,
 		etaM = etaM0 / std::sinh(mvM * std::pow(s_eff, nvM)); // viscosity function update
 	else
 		etaM = etaM0;
-	etaM *= Bt * std::exp(Q *(-dT) / (PhysicalConstant::IdealGasConstant * Temperature * T_ref));
+	etaM *= Bt * std::exp(Q * (-dT) / (PhysicalConstant::IdealGasConstant * Temperature * T_ref));
 
-	coh = coh0 * (1. + eps_p_eff * hard); // linear isotropic hardening/softening
-//	if (etaM / etaM0 < 1.e-2)
-//		std::cout << "WARNING: Maxwell viscosity sank to 100th of original value." << std::endl;
+	coh = coh0
+	      * (1.
+	         + eps_p_eff
+	               * (hard
+	                  + eps_p_eff
+	                        * (hard2 + eps_p_eff * eps_p_eff * hard4))); // fourth order isotropic hardening/softening
+	//	if (etaM / etaM0 < 1.e-2)
+	//		std::cout << "WARNING: Maxwell viscosity sank to 100th of original value." << std::endl;
 }
 
 /**************************************************************************
@@ -488,7 +495,7 @@ double SolidMinkley::DDtheta_DDJ3(const double theta, const double J3)
    06/2015 TN Implementation
 **************************************************************************/
 void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_curr, const double sig_eff,
-                                           const double lam_curr, Eigen::Matrix<double, 27, 27>& Jac)
+                                           const double lam_curr, const double e_eff_i, Eigen::Matrix<double, 27, 27>& Jac)
 {
 	// submatrices of the Jacobian
 	const KVec sigd_curr(GM * SolidMath::P_dev * stress_curr);
@@ -618,7 +625,7 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
 	// G_72 - G_75 zero
 
 	// build G_76
-	Jac.block<1, 1>(26, 25)(0) = -coh0 * hard * std::cos(phi) / GM;
+	Jac.block<1, 1>(26, 25)(0) = -coh0 * (hard + 2. * e_eff_i * (hard2 + 2.*e_eff_i*e_eff_i*hard4)) * std::cos(phi) / GM;
 
 	// build G_77
 	Jac.block<1, 1>(26, 26)(0) = -eta_reg;

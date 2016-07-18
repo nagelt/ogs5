@@ -822,16 +822,34 @@ double CRFProcessDeformation::Execute(int loop_process_number)
 #if defined(USE_MPI) || defined(USE_PETSC)
 				}
 #endif
-				if (Error > 100.0 && ite_steps > 1)
-				{
-					printf("\n  Attention: Newton-Raphson step is diverged. Programme halt!\n");
-					exit(1);
+//				ofstream Dum("global.txt", ios::app);
+//				Dum << aktueller_zeitschritt << " " << ite_steps << " " << Error << " " << ErrorU << std::endl;
+//				Dum.close();
+
+				// if(Error > 100.0 && ite_steps > 1)
+				//{
+				//	printf (
+				//	        "\n  Attention: Newton-Raphson step is diverged. Programme halt!\n");
+				//	exit(1);
+				//}
+				// if(InitialNorm < 10 * Tolerance_global_Newton)
+				//	break;
+				// if(Norm < 0.001 * InitialNorm)
+				//	break;
+				// TN: Convergence test based on relative force and displacement residual
+				// TN: The additional condition on the absolute tolerance should eventually be input file controlled
+
+				bool absolute(false);
+				if (NormU <= Tolerance_global_Newton/100.) {
+					absolute = true;
+					std::cout << "Nonlinear iteration will be accepted because absolute norm of displacements "
+							  << "is below 0.01 of relative tolerance (set to " <<
+							  Tolerance_global_Newton << ")\n.";
 				}
-				if (InitialNorm < 10 * Tolerance_global_Newton)
-					break;
-				if (Norm < 0.001 * InitialNorm)
-					break;
-				if (Error <= Tolerance_global_Newton)
+				 //Test on absolute and relative norms with same tolerance
+				 if((Error <= Tolerance_global_Newton && ErrorU <= Tolerance_global_Newton) || Norm <=
+				 Tolerance_global_Newton && NormU <= Tolerance_global_Newton)
+				//if (NormU <= Tolerance_global_Newton)
 				{
 					if (ite_steps == 1) // WX:05.2012
 					{

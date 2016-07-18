@@ -2532,8 +2532,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				Matrix ConsD(6, 6);
 
 				bool output = false;
-				//                if (MeshElement->GetIndex() == 1031 && gp==0 && update < 1)
-				//                    output = true;
+//				if (MeshElement->GetIndex() == 0 && gp==0 && update < 1)
+//					output = true;
 				// Pass as 6D vectors, i.e. set stress and strain [4] and [5] to zero for 2D and AXI as well as
 				// strain[3] to zero for 2D (plane strain)
 				double local_res(0.);

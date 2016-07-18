@@ -214,10 +214,10 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 TEST(SolidProps, YieldMohrCoulomb)
 {
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(18);
+	data = new Math_Group::Matrix(20);
 
 	// set Constants
-	for (int i(0); i < 15; i++)
+	for (int i(0); i < 20; i++)
 		(*data)(i) = (double)i;
 
 	(*data)(7) = 2.; // cohesion
@@ -252,7 +252,7 @@ TEST(SolidProps, YieldMohrCoulomb)
 TEST(SolidProps, MinkleyJacobianNumeric)
 {
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(18);
+	data = new Math_Group::Matrix(20);
 
 	// set Constants
 	(*data)(0) = 63.e3; // Kelvin shear modulus
@@ -273,6 +273,8 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 	(*data)(15) = 273.; // reference temperature dependency parameter for "
 	(*data)(16) = 1.; // constant factor for Arrhenius term
 	(*data)(17) = 0.; // activation energy in Arrhenius term
+	(*data)(18) = 0.; //second order hardening
+	(*data)(19) = 0.; //fourth order hardening
 	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
@@ -421,7 +423,7 @@ TEST(SolidProps, TensorInversion)
 TEST(SolidProps, MinkleyFullResidual)
 {
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(18);
+	data = new Math_Group::Matrix(20);
 
 	// set Constants
 	(*data)(0) = 63.e3; // Kelvin shear modulus
@@ -442,6 +444,8 @@ TEST(SolidProps, MinkleyFullResidual)
 	(*data)(15) = 273.15; // reference temperature dependency parameter for "
 	(*data)(16) = 1.; // constant factor for Arrhenius term
 	(*data)(17) = 0.; // activation energy in Arrhenius term
+	(*data)(18) = 0.; //second order hardening
+	(*data)(19) = 0.; //fourth order hardening
 	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
@@ -539,7 +543,7 @@ TEST(SolidProps, MinkleyFullResidual)
 TEST(SolidProps, MinkleyFullJacobian)
 {
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(18);
+	data = new Math_Group::Matrix(20);
 
 	// set Constants
 	(*data)(0) = 63.e3; // Kelvin shear modulus
@@ -559,7 +563,9 @@ TEST(SolidProps, MinkleyFullJacobian)
 	(*data)(14) = 0.; // slope of elesticity temperature dependence
 	(*data)(15) = 273.15; // reference temperature dependency parameter for "
 	(*data)(16) = 1.; // constant factor for Arrhenius term
-	(*data)(17) = 0.; // activation energy in Arrhenius ter
+	(*data)(17) = 0.; // activation energy in Arrhenius term
+	(*data)(18) = -1.e4; //second order hardening
+	(*data)(19) = -1.e6; //fourth order hardening
 	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
@@ -616,7 +622,7 @@ TEST(SolidProps, MinkleyFullJacobian)
 
 	// Calculate Jacobian for time step
 	Eigen::Matrix<double, 27, 27> Jacobian;
-	material.CalViscoplasticJacobian(dt, sig_j, SolidMath::CalEffectiveStress(sigd_j), lam_j, Jacobian);
+	material.CalViscoplasticJacobian(dt, sig_j, SolidMath::CalEffectiveStress(sigd_j), lam_j, e_eff_i, Jacobian);
 
 	// Numerically calculate Jacobian
 	Eigen::Matrix<double, 27, 27> Jac_num;
@@ -712,7 +718,7 @@ TEST(SolidProps, MinkleyFullJacobian)
 			{
 				// Update Material parameters
 				material.UpdateMinkleyProperties(SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j),
-												 e_eff_i + pertub, 273.);
+				                                 e_eff_i + pertub, 273.);
 				material.CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 				                                 eps_pl_t, e_v_i, 0., e_eff_i + pertub, 0., lam_j, residual);
 				up = residual(i);
