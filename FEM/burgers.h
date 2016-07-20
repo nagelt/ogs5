@@ -11,6 +11,7 @@
 namespace Burgers
 {
 typedef Eigen::Matrix<double, 6, 1> KVec;
+typedef Eigen::Matrix<double, 6, 6> KMat;
 
 class SolidBurgers
 {

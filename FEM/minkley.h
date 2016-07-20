@@ -13,6 +13,7 @@
 namespace Minkley
 {
 typedef Eigen::Matrix<double, 6, 1> KVec;
+typedef Eigen::Matrix<double, 6, 6> KMat;
 
 class SolidMinkley
 {
@@ -61,7 +62,7 @@ private:
 	double DG_Dtheta(const double theta, const double J2, const double alpha);
 	double Dtheta_DJ2(const double theta, const double J2);
 	double Dtheta_DJ3(const double theta, const double J3);
-	Eigen::Matrix<double, 6, 6> s_odot_s(const KVec& vec);
+	KMat s_odot_s(const KVec& vec);
 	double DDG_DDJ2(const double theta, const double J2, const double alpha);
 	double DDG_DJ2_Dtheta(const double theta, const double J2, const double alpha);
 	double DDG_DDtheta(const double theta, const double J2, const double alpha);

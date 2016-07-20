@@ -362,9 +362,9 @@ Note: the factors of 2 and sqrt(2) come from the fact that the
 incoming quantities are transformed to actual tensor coordinates
 and the resulting 4th order tensor is then remapped with the
 Kelvin scheme*/
-Eigen::Matrix<double, 6, 6> SolidMinkley::s_odot_s(const KVec& vec)
+KMat SolidMinkley::s_odot_s(const KVec& vec)
 {
-	Eigen::Matrix<double, 6, 6> odot;
+	KMat odot;
 
 	odot(0, 0) = -vec(0) * vec(0);
 	odot(0, 1) = odot(1, 0) = -vec(3) * vec(3) / 2.;
@@ -499,7 +499,7 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
 	const double vol_flow(3. * DG_DI1(psi));
 	const KVec dmu_vM = DetaM_Dsigma(sig_eff * GM, sigd_curr);
 	KVec dev_flow;
-	Eigen::Matrix<double, 6, 6> Ddev_flowDsigma;
+	KMat Ddev_flowDsigma;
 	const double DthetaDJ2(Dtheta_DJ2(theta, J_2));
 	const double DthetaDJ3(Dtheta_DJ3(theta, J_3));
 

@@ -10,15 +10,16 @@
 namespace SolidMath
 {
 typedef Eigen::Matrix<double, 6, 1> KVec;
+typedef Eigen::Matrix<double, 6, 6> KMat;
 
-Eigen::Matrix<double, 6, 6> Initialise_ident();
-Eigen::Matrix<double, 6, 6> Initialise_P_dev();
-Eigen::Matrix<double, 6, 6> Initialise_P_sph();
+KMat Initialise_ident();
+KMat Initialise_P_dev();
+KMat Initialise_P_sph();
 KVec Initialise_ivec();
 
-static const Eigen::Matrix<double, 6, 6> ident(Initialise_ident()); // identity matrix
-static const Eigen::Matrix<double, 6, 6> P_dev(Initialise_P_dev()); // deviatoric projection matrix
-static const Eigen::Matrix<double, 6, 6> P_sph(Initialise_P_sph()); // spherical projection matrix
+static const KMat ident(Initialise_ident()); // identity matrix
+static const KMat P_dev(Initialise_P_dev()); // deviatoric projection matrix
+static const KMat P_sph(Initialise_P_sph()); // spherical projection matrix
 static const KVec ivec(Initialise_ivec()); // Kelvin mapping of 2nd order identity
 
 // Kelvin/Voigt mapping routines for 6D vectors

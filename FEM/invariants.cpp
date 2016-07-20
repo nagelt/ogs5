@@ -2,16 +2,16 @@
 
 namespace SolidMath
 {
-Eigen::Matrix<double, 6, 6> Initialise_ident()
+KMat Initialise_ident()
 {
-	Eigen::Matrix<double, 6, 6> I;
+	KMat I;
 	I.setIdentity();
 	return I;
 }
 
-Eigen::Matrix<double, 6, 6> Initialise_P_dev()
+KMat Initialise_P_dev()
 {
-	Eigen::Matrix<double, 6, 6> P;
+	KMat P;
 	P.setIdentity();
 	const double third(1. / 3.);
 	for (size_t i = 0; i < 3; i++)
@@ -22,9 +22,9 @@ Eigen::Matrix<double, 6, 6> Initialise_P_dev()
 	return P;
 }
 
-Eigen::Matrix<double, 6, 6> Initialise_P_sph()
+KMat Initialise_P_sph()
 {
-	Eigen::Matrix<double, 6, 6> P;
+	KMat P;
 	P.setZero(6, 6);
 	const double third(1. / 3.);
 	for (size_t i = 0; i < 3; i++)
