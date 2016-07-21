@@ -2460,10 +2460,13 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 
 				// 6x6 tangent
 				Matrix ConsD(6, 6);
+				bool output = false;
+				//                if (MeshElement->GetIndex() == 1031 && gp==0 && update < 1)
+				//                    output = true;
 				// Pass as 6D vectors, i.e. set stress and strain [4] and [5] to zero for 2D and AXI as well as
 				// strain[3] to zero for 2D (plane strain)
 				double local_res;
-				smat->LocalNewtonBurgers(dt, strain_curr, stress_curr, eps_K_curr, eps_M_curr, ConsD, t1,
+				smat->LocalNewtonBurgers(dt, strain_curr, stress_curr, eps_K_curr, eps_M_curr, ConsD, output, t1,
 										 local_res);
 
 				// Then update (and reduce for 2D) stress increment vector and reduce (for 2D) ConsistDep, update
@@ -2518,11 +2521,14 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				// 6x6 tangent
 				Matrix ConsD(6, 6);
 
+				bool output = false;
+//				if (MeshElement->GetIndex() == 0 && gp==0 && update < 1)
+//					output = true;
 				// Pass as 6D vectors, i.e. set stress and strain [4] and [5] to zero for 2D and AXI as well as
 				// strain[3] to zero for 2D (plane strain)
 				double local_res(0.);
 				smat->LocalNewtonMinkley(dt, strain_curr, stress_curr, eps_K_curr, eps_M_curr, eps_pl_curr, e_pl_v,
-										 e_pl_eff, lam, ConsD, t1, local_res);
+										 e_pl_eff, lam, ConsD, output, t1, local_res);
 
 				// Then update (and reduce for 2D) stress increment vector and reduce (for 2D) ConsistDep, update
 				// internal variables
