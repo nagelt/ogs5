@@ -195,6 +195,8 @@ CFiniteElementVec::CFiniteElementVec(process::CRFProcessDeformation* dm_pcs, con
 			Szz = new double[9];
 			Sxy = new double[9];
 			pstr = new double[9];
+			dilat = new double[9];
+			loc_nr_res = new double[9];
 
 			Sxz = NULL;
 			Syz = NULL;
@@ -232,6 +234,8 @@ CFiniteElementVec::CFiniteElementVec(process::CRFProcessDeformation* dm_pcs, con
 			Sxz = new double[20];
 			Syz = new double[20];
 			pstr = new double[20];
+			dilat = new double[20];
+			loc_nr_res = new double[20];
 
 			// Indecex in nodal value table
 			Idx_Strain[4] = pcs->GetNodeValueIndex("STRAIN_XZ");
@@ -387,6 +391,8 @@ CFiniteElementVec::~CFiniteElementVec()
 	delete[] Szz;
 	delete[] Sxy;
 	delete[] pstr;
+	delete[] dilat;
+	delete[] loc_nr_res;
 	delete[] Idx_Strain;
 	delete[] Idx_Stress;
 	delete[] strain_ne;
@@ -460,6 +466,8 @@ CFiniteElementVec::~CFiniteElementVec()
 	Sxz = NULL;
 	Syz = NULL;
 	pstr = NULL;
+	dilat = NULL;
+	loc_nr_res = NULL;
 	//  10.11.2010. WW
 	if (X0)
 		delete[] X0;
@@ -2852,6 +2860,10 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 		eleV_DM = ele_value_dm[MeshElement->GetIndex()];
 		if (eleV_DM->pStrain) // 08.02.2008 WW
 			idx_pls = pcs->GetNodeValueIndex("STRAIN_PLS");
+		if (eleV_DM->e_pl)
+			idx_dilat = pcs->GetNodeValueIndex("DILATANCY");
+		if (eleV_DM->ev_loc_nr_res)
+			idx_loc_nr_res = pcs->GetNodeValueIndex("LOCAL_RES");
 		//
 		MshElemType::type ElementType = MeshElement->GetElementType();
 		SetIntegrationPointNumber(ElementType);
@@ -2875,7 +2887,15 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			if (eleV_DM->pStrain)
 				pstr[i] = (*eleV_DM->pStrain)(gp);
 			else
-				pstr[i] = 0.0; // 08.02.2008 WW
+				pstr[i] = 0.0;
+			if (eleV_DM->e_pl)
+				dilat[i] = (*eleV_DM->e_pl)(gp);
+			else
+				dilat[i] = 0.0;
+			if (eleV_DM->ev_loc_nr_res)
+				loc_nr_res[i] = (*eleV_DM->ev_loc_nr_res)(gp);
+			else
+				loc_nr_res[i] = 0.0;
 			if (ele_dim == 3)
 			{
 				Sxz[i] = (*eleV_DM->Stress)(4, gp);
@@ -2900,9 +2920,9 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 		// Mapping Gauss point strains to nodes and update nodes
 		// strains:
 		//---------------------------------------------------------
-		double ESxx, ESyy, ESzz, ESxy, ESxz, ESyz, Pls;
-		double avgESxx, avgESyy, avgESzz, avgESxy, avgESxz, avgESyz, avgPls;
-		avgESxx = avgESyy = avgESzz = avgESxy = avgESxz = avgESyz = avgPls = 0.0;
+		double ESxx, ESyy, ESzz, ESxy, ESxz, ESyz, Pls, Dil, Res;
+		double avgESxx, avgESyy, avgESzz, avgESxy, avgESxz, avgESyz, avgPls, avgDilat, avgRes;
+		avgESxx = avgESyy = avgESzz = avgESxy = avgESxz = avgESyz = avgPls = avgDilat = avgRes = 0.0;
 		if (this->GetExtrapoMethod() == ExtrapolationMethod::EXTRAPO_AVERAGE)
 		{
 			// average
@@ -2913,12 +2933,14 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			avgESxz = CalcAverageGaussPointValues(Sxz);
 			avgESyz = CalcAverageGaussPointValues(Syz);
 			avgPls = CalcAverageGaussPointValues(pstr);
+			avgDilat = CalcAverageGaussPointValues(dilat);
+			avgRes = CalcAverageGaussPointValues(loc_nr_res);
 		}
 
 		ConfigShapefunction(ElementType);
 		for (int i = 0; i < nnodes; i++)
 		{
-			ESxx = ESyy = ESzz = ESxy = ESxz = ESyz = Pls = 0.0;
+			ESxx = ESyy = ESzz = ESxy = ESxz = ESyz = Pls = Dil = Res = 0.0;
 
 			// Calculate values at nodes
 			if (this->GetExtrapoMethod() == ExtrapolationMethod::EXTRAPO_LINEAR)
@@ -2936,6 +2958,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 					ESxy += Sxy[j] * dbuff0[k];
 					ESzz += Szz[j] * dbuff0[k];
 					Pls += pstr[j] * dbuff0[k];
+					Dil += dilat[j] * dbuff0[k];
+					Res += loc_nr_res[j] * dbuff0[k];
 					if (ele_dim == 3)
 					{
 						ESxz += Sxz[j] * dbuff0[k];
@@ -2951,6 +2975,8 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				ESxy = avgESxy;
 				ESzz = avgESzz;
 				Pls = avgPls;
+				Dil = avgDilat;
+				Res = avgRes;
 				if (ele_dim == 3)
 				{
 					ESxz = avgESxz;
@@ -2959,19 +2985,26 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			}
 
 			// Average value of the contribution of ell neighbor elements
-			ESxx /= dbuff[i];
-			ESyy /= dbuff[i];
-			ESxy /= dbuff[i];
-			ESzz /= dbuff[i];
-			Pls /= dbuff[i];
+			const int nr_connected_elements = dbuff[i];
+			ESxx /= nr_connected_elements;
+			ESyy /= nr_connected_elements;
+			ESxy /= nr_connected_elements;
+			ESzz /= nr_connected_elements;
+			Pls /= nr_connected_elements;
+			Dil /= nr_connected_elements;
+			Res /= nr_connected_elements;
 			//
-			long node_i = nodes[i];
+			const long node_i = nodes[i];
 			ESxx += pcs->GetNodeValue(node_i, Idx_Stress[0]);
 			ESyy += pcs->GetNodeValue(node_i, Idx_Stress[1]);
 			ESzz += pcs->GetNodeValue(node_i, Idx_Stress[2]);
 			ESxy += pcs->GetNodeValue(node_i, Idx_Stress[3]);
 			if (eleV_DM->pStrain) // 08.02.2008 WW
 				Pls += pcs->GetNodeValue(node_i, idx_pls);
+			if (eleV_DM->e_pl)
+				Dil += pcs->GetNodeValue(node_i, idx_dilat);
+			if (eleV_DM->ev_loc_nr_res)
+				Res += pcs->GetNodeValue(node_i, idx_loc_nr_res);
 
 			pcs->SetNodeValue(node_i, Idx_Stress[0], ESxx);
 			pcs->SetNodeValue(node_i, Idx_Stress[1], ESyy);
@@ -2979,11 +3012,15 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 			pcs->SetNodeValue(node_i, Idx_Stress[3], ESxy);
 			if (eleV_DM->pStrain) // 08.02.2008 WW
 				pcs->SetNodeValue(node_i, idx_pls, fabs(Pls));
+			if (eleV_DM->e_pl)
+				pcs->SetNodeValue(node_i, idx_dilat, Dil);
+			if (eleV_DM->ev_loc_nr_res)
+				pcs->SetNodeValue(node_i, idx_loc_nr_res, Res);
 
 			if (ele_dim == 3)
 			{
-				ESxz /= dbuff[i];
-				ESyz /= dbuff[i];
+				ESxz /= nr_connected_elements;
+				ESyz /= nr_connected_elements;
 
 				ESxz += pcs->GetNodeValue(node_i, Idx_Stress[4]);
 				ESyz += pcs->GetNodeValue(node_i, Idx_Stress[5]);
