@@ -144,6 +144,8 @@ private:
 	int idx_T0, idx_T1;
 	int idx_S0, idx_S, idx_Snw;
 	int idx_pls;
+	int idx_dilat;
+	int idx_loc_nr_res;
 	// Displacement column indeces in the node value table
 	int* Idx_Stress;
 	int* Idx_Strain;
@@ -228,7 +230,7 @@ private:
 	void ComputeMatrix_RHS(const double fkt, const Matrix* p_D);
 
 	// Temporarily used variables
-	double* Sxx, *Syy, *Szz, *Sxy, *Sxz, *Syz, *pstr;
+	double* Sxx, *Syy, *Szz, *Sxy, *Sxz, *Syz, *pstr, *dilat, *loc_nr_res;
 	// 2. For enhanced strain approach
 	Matrix* BDG, *PDB, *DtD, *PeDe; // For enhanced strain element
 
