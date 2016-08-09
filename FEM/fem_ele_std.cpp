@@ -10536,7 +10536,7 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 		// Compute geometry
 		//---------------------------------------------------------
 		getShapefunctValues(gp, 1); // Linear interpolation function
-		getGradShapefunctValues(gp,1);
+		getGradShapefunctValues(gp, 1);
 		//  Evaluate variables
 		//---------------------------------------------------------
 		const double T_n = interpolate(NodalValC);
@@ -10546,18 +10546,18 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 		//  Evaluate material property
 		//---------------------------------------------------------
 		const double poro = MediaProp->Porosity(Index, pcs->m_num->ls_theta);
-        double beta_T_s = 3. * SolidProp->Thermal_Expansion(); // multiply 3 for volumetrix expression
+		double beta_T_s = 3. * SolidProp->Thermal_Expansion(); // multiply 3 for volumetrix expression
 		Sw = 1.0;
-        double beta_T_l;
+		double beta_T_l;
 		if (FluidProp->density_model > 7 && FluidProp->density_model < 15)
 		{
 			double arg[2];
 			arg[0] = interpolate(NodalVal1); // p
 			arg[1] = interpolate(NodalValC1); // T
-            beta_T_l = -FluidProp->drhodT(arg) / FluidProp->Density();
+			beta_T_l = -FluidProp->drhodT(arg) / FluidProp->Density();
 		}
 		else
-            beta_T_l = -FluidProp->drho_dT; // negative sign is required due to OGS input
+			beta_T_l = -FluidProp->drho_dT; // negative sign is required due to OGS input
 
 		if (PcsType == EPT_RICHARDS_FLOW)
 		{
@@ -10568,12 +10568,12 @@ void CFiniteElementStd::Assemble_RHS_LIQUIDFLOW()
 				if (FluidProp->drho_dT_unsaturated)
 					Sw = MediaProp->SaturationCapillaryPressureFunction(-PG);
 				else
-                    beta_T_l = beta_T_s = 0.0;
+					beta_T_l = beta_T_s = 0.0;
 			}
 		}
-        const double eff_thermal_expansion = (SolidProp->biot_const - poro) * beta_T_s + poro * Sw * beta_T_l;
+		const double eff_thermal_expansion = (SolidProp->biot_const - poro) * beta_T_s + poro * Sw * beta_T_l;
 		//---------------------------------------------------------
-        //  Compute RHS+=int{N^T beta_T dT/dt}
+		//  Compute RHS+=int{N^T beta_T dT/dt}
 		//---------------------------------------------------------
 		const double fac = eff_thermal_expansion * dT / dt / time_unit_factor; // WX:bug fixed
 
