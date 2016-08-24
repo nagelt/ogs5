@@ -5591,10 +5591,10 @@ void CFiniteElementStd::CalcStrainCoupling(int phase)
 void CFiniteElementStd::Assemble_Gravity()
 {
 	// int Index = MeshElement->GetIndex();
-	if ((coordinate_system) % 10 != 2) // NW: exclude (!axisymmetry)
+    // if ((coordinate_system) % 10 != 2) // NW: exclude (!axisymmetry)
 
 		// 27.2.2007 WW (*GravityMatrix) = 0.0;
-		return;
+    //	return;
 	int i, ii;
 	// ---- Gauss integral
 	int gp_r = 0, gp_s = 0, gp_t;
