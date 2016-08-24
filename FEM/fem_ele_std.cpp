@@ -9887,6 +9887,7 @@ ElementValue::ElementValue(CRFProcess* m_pcs, CElem* ele) : pcs(m_pcs)
 		rho_s_prev = new double[NGPoints];
 		rho_s_curr = new double[NGPoints];
 		q_R = new double[NGPoints];
+		q_R_int = std::vector<double>(NGPoints);
 
 		for (int i = 0; i < NGPoints; i++)
 		{
@@ -9894,6 +9895,7 @@ ElementValue::ElementValue(CRFProcess* m_pcs, CElem* ele) : pcs(m_pcs)
 			rho_s_prev[i] = msp_vector[group]->Density();
 			rho_s_curr[i] = rho_s_prev[i];
 			q_R[i] = 0.0;
+			q_R_int[i] = 0.;
 		}
 	}
 
