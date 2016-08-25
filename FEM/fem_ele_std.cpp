@@ -6188,7 +6188,6 @@ void CFiniteElementStd::CalcSolidDensityRate()
 		// poro = mmp_vector[group]->porosity;
 		const double poro = MediaProp->Porosity(Index, pcs->m_num->ls_theta);
 
-		// set parameters in the ca_hydaration class
 		if (this->SolidProp->getSolidReactiveSystem() != FiniteElement::INERT)
 		{
 			if (this->SolidProp->getSolidReactiveSystem() == FiniteElement::SINUSOIDAL)
@@ -6201,8 +6200,7 @@ void CFiniteElementStd::CalcSolidDensityRate()
 				gp_ele->q_R[gp] = rhoTil * omega * cos(omega * aktuelle_zeit) / (1.0 - poro); // TN Test mass transfer
 			}
 			else
-			{ // Fuer CaOH2 im Moment
-
+			{
 				pcs->m_conversion_rate->update_param(T_s, T_g, p_g / 1.0e5, w_mf, gp_ele->rho_s_prev[gp], 1.0 - poro,
 				                                     delta_t, SolidProp->getSolidReactiveSystem());
 
@@ -6227,6 +6225,11 @@ void CFiniteElementStd::CalcSolidDensityRate()
 				gp_ele->rho_s_curr[gp] = (1.0 - xv_NR) * rho_react + xv_NR * rho_NR;
 
 				gp_ele->q_R[gp] = y_dot_new * (1.0 - xv_NR);
+
+				gp_ele->q_R_int_curr[gp]
+				    = gp_ele->q_R_int_prev
+				      + delta_t * std::abs(gp_ele->rho_s_curr[gp])
+				            / (SolidProp->upper_solid_density_limit - SolidProp->lower_solid_density_limit);
 #else
 				std::cout << "Error: CMake option OGS_USE_CVODE needs to be set to solve this process type!"
 				          << std::endl;
@@ -6237,6 +6240,7 @@ void CFiniteElementStd::CalcSolidDensityRate()
 		else
 		{ // if not reactive solid
 			gp_ele->rho_s_curr[gp] = gp_ele->rho_s_prev[gp];
+			gp_ele->q_R_int_curr[gp] = gp_ele->q_R_int_prev[gp];
 			gp_ele->q_R[gp] = 0.0;
 		}
 	}
