@@ -9269,23 +9269,29 @@ void CFiniteElementStd::UpdateSolidDensity(size_t elem_idx)
 
 	double rho_s_elem = 0.0;
 	double qR_elem = 0.0;
+	double qR_int_elem = 0.0;
 
 	// loop over all Gauss points
 	for (gp = 0; gp < nGaussPoints; gp++)
 	{
 		// copy current to previous.
 		gp_ele->rho_s_prev[gp] = gp_ele->rho_s_curr[gp];
+		gp_ele->q_R_int_prev[gp] = gp_ele->q_R_int_curr[gp];
 		rho_s_elem += gp_ele->rho_s_curr[gp];
 		qR_elem += gp_ele->q_R[gp];
+		qR_int_elem += gp_ele->q_R_int_curr[gp];
 	}
 	rho_s_elem /= nGaussPoints;
 	qR_elem /= nGaussPoints;
+	qR_int_elem /= nGaussPoints;
 
 	const int idx_rho = pcs->GetElementValueIndex("SOLID_DENSITY") + 1;
 	const int idx_qR = pcs->GetElementValueIndex("REACT_RATE") + 1;
+	const int idx_qR_int = pcs->GetElementValueIndex("INT_CONVERSION") + 1;
 
 	pcs->SetElementValue(elem_idx, idx_rho, rho_s_elem);
 	pcs->SetElementValue(elem_idx, idx_qR, qR_elem);
+	pcs->SetElementValue(elem_idx, idx_qR_int, qR_int_elem);
 }
 /**************************************************************************
    FEMLib-Method:
