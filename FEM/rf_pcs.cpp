@@ -10729,7 +10729,8 @@ void CRFProcess::CalcSecondaryVariablesTNEQ()
 	const size_t node_vector_size(m_msh->nod_vector.size());
 	const int idx_nodal_react_rate = this->GetNodeValueIndex("REACT_RATE_N");
 	const int idx_nodal_solid_density = this->GetNodeValueIndex("SOLID_DENSITY_N");
-	
+	const int idx_nodal_integral_conversion = this->GetNodeValueIndex("INT_CONVERSION_N");
+
 	const int idx_nodal_solid_cP = this->GetNodeValueIndex("SOLID_HEAT_CAP_N");
 
 	for (size_t idx_node = 0; idx_node < node_vector_size; idx_node++)
@@ -10737,6 +10738,7 @@ void CRFProcess::CalcSecondaryVariablesTNEQ()
 		this->SetNodeValue(idx_node, idx_nodal_react_rate, 0.0);
 		this->SetNodeValue(idx_node, idx_nodal_solid_density, 0.0);
 		this->SetNodeValue( idx_node, idx_nodal_solid_cP, 0.0);
+		this->SetNodeValue(idx_node, idx_nodal_integral_conversion, 0.0);
 	}
 
 	// loop over all the elements and update the rho_s values.
@@ -10768,12 +10770,14 @@ void CRFProcess::CalcSecondaryVariablesTES()
 	const int idx_nodal_react_rate = GetNodeValueIndex("REACT_RATE_N");
 	const int idx_nodal_solid_density = GetNodeValueIndex("SOLID_DENSITY_N");
 	const int idx_nodal_solid_cP = this->GetNodeValueIndex("SOLID_HEAT_CAP_N");
+	const int idx_nodal_integral_conversion = this->GetNodeValueIndex("INT_CONVERSION_N");
 
 	for (size_t idx_node = 0; idx_node < node_vector_size; idx_node++)
 	{
-		SetNodeValue(idx_node, idx_nodal_react_rate, 0.0);
-		SetNodeValue(idx_node, idx_nodal_solid_density, 0.0);
+		this->SetNodeValue(idx_node, idx_nodal_react_rate, 0.0);
+		this->SetNodeValue(idx_node, idx_nodal_solid_density, 0.0);
 		this->SetNodeValue( idx_node, idx_nodal_solid_cP, 0.0);
+		this->SetNodeValue(idx_node, idx_nodal_integral_conversion, 0.0);
 	}
 
 	// loop over all the elements and update the rho_s values.

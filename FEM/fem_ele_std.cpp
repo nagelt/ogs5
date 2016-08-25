@@ -9439,12 +9439,14 @@ void CFiniteElementStd::ExtrapolateGauss_ReactRate_TNEQ_TES(MeshLib::CElem& elem
 {
 	int i, j, gp, gp_r, gp_s, gp_t;
 	int i_s, i_e, ish;
-	double EV, EV1 = 0.0, rhoEV, rhoEV1 = 0.0, varx = 0.0;
+	double EV = 0., EV1 = 0.0, rhoEV = 0.0, varx = 0.0;
 
 	// get the index pointing to nodal reaction rate.
 	const int idx_nodal_react_rate = m_pcs->GetNodeValueIndex("REACT_RATE_N");
 	// get the index pointing to solid density.
 	const int idx_nodal_solid_density = m_pcs->GetNodeValueIndex("SOLID_DENSITY_N");
+	// get the index pointing to integral conversion.
+	const int idx_nodal_integral_conversion = m_pcs->GetNodeValueIndex("INT_CONVERSION_N");
 
 	MeshElement = &elem;
 	// get element type
@@ -9479,6 +9481,7 @@ void CFiniteElementStd::ExtrapolateGauss_ReactRate_TNEQ_TES(MeshLib::CElem& elem
 		// copy the reaction rates on the gauss points into vector NodalVal4.
 		NodalVal4[i] = gp_ele->q_R[gp] * time_unit_factor;
 		NodalVal5[i] = gp_ele->rho_s_curr[gp] * time_unit_factor;
+		NodalVal_Sat[i] = gp_ele->q_R_int_curr[gp] * time_unit_factor;
 	}
 
 	CalcXi_p();
@@ -9496,17 +9499,19 @@ void CFiniteElementStd::ExtrapolateGauss_ReactRate_TNEQ_TES(MeshLib::CElem& elem
 	// Mapping Gauss point reaction rates to nodes and update nodal
 	// reaction rates:
 	//---------------------------------------------------------
-	double avgEV = .0, avg_rhoEV = .0;
+	double avgEV = .0, avg_rhoEV = .0, avg_qRi = 0.;
 	// double avgEV1 = .0, avg_rhoEV1 = .0;
 	if (this->GetExtrapoMethod() == ExtrapolationMethod::EXTRAPO_AVERAGE)
 	{ // average
 		avgEV = CalcAverageGaussPointValues(NodalVal4);
+		avg_rhoEV = CalcAverageGaussPointValues(NodalVal5);
+		avg_qRi = CalcAverageGaussPointValues(NodalVal_Sat);
 	}
 
 	ConfigShapefunction(ElementType);
 	for (i = 0; i < nnodes; i++)
 	{
-		EV = EV1 = varx = rhoEV = rhoEV1 = 0.0;
+		EV = EV1 = varx = rhoEV = 0.0;
 
 		// Calculate values at nodes
 		if (this->GetExtrapoMethod() == ExtrapolationMethod::EXTRAPO_LINEAR)
@@ -9518,12 +9523,14 @@ void CFiniteElementStd::ExtrapolateGauss_ReactRate_TNEQ_TES(MeshLib::CElem& elem
 			{
 				EV += NodalVal4[j] * dbuff0[j - ish];
 				rhoEV += NodalVal5[j] * dbuff0[j - ish];
+				EV1 += NodalVal_Sat[j] * dbuff0[j - ish];
 			}
 		}
 		else if (this->GetExtrapoMethod() == ExtrapolationMethod::EXTRAPO_AVERAGE)
 		{ // average
 			EV = avgEV;
 			rhoEV = avg_rhoEV;
+			EV1 = avg_qRi;
 		}
 
 		EV /= dbuff[i];
@@ -9533,6 +9540,10 @@ void CFiniteElementStd::ExtrapolateGauss_ReactRate_TNEQ_TES(MeshLib::CElem& elem
 		rhoEV /= dbuff[i];
 		rhoEV += m_pcs->GetNodeValue(nodes[i], idx_nodal_solid_density);
 		m_pcs->SetNodeValue(nodes[i], idx_nodal_solid_density, rhoEV);
+
+		EV1 /= dbuff[i];
+		EV1 += m_pcs->GetNodeValue(nodes[i], idx_nodal_integral_conversion);
+		m_pcs->SetNodeValue(nodes[i], idx_nodal_integral_conversion, EV1);
 	} // end of for i over nnodes
 }
 
