@@ -475,7 +475,8 @@ public:
 	double* rho_s_prev;
 	double* rho_s_curr;
 	double* q_R;
-	std::vector<double> q_R_int; //integral conversion degree
+	std::vector<double> q_R_int_prev; //integral conversion degree
+	std::vector<double> q_R_int_curr;
 // End of Thermal Storage parameters---------------
 #ifdef USE_TRANSPORT_FLUX
 	Matrix TransportFlux; // Fick or Fourier law  with dispersion      JOD 2014-11-10
