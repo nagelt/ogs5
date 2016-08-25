@@ -4130,6 +4130,11 @@ void CRFProcess::ConfigTNEQ()
 	pcs_secondary_function_unit[pcs_number_of_secondary_nvals] = "J/kgK";
 	pcs_secondary_function_timelevel[pcs_number_of_secondary_nvals] = 1;
 	pcs_number_of_secondary_nvals++;
+	// Integral degree of conversion output
+	pcs_secondary_function_name[pcs_number_of_secondary_nvals] = "INT_CONVERSION_N"; //TN TEST
+	pcs_secondary_function_unit[pcs_number_of_secondary_nvals] = "-";
+	pcs_secondary_function_timelevel[pcs_number_of_secondary_nvals] = 1;
+	pcs_number_of_secondary_nvals++;
 
 	pcs_number_of_evals = 0;
 	pcs_eval_name[pcs_number_of_evals] = "VELOCITY1_X";
@@ -4152,6 +4157,9 @@ void CRFProcess::ConfigTNEQ()
 	pcs_number_of_evals++;
 	pcs_eval_name[pcs_number_of_evals] = "REACT_RATE";
 	pcs_eval_unit[pcs_number_of_evals] = "kg/m3s";
+	pcs_number_of_evals++;
+	pcs_eval_name[pcs_number_of_evals] = "INT_CONVERSION";
+	pcs_eval_unit[pcs_number_of_evals] = "-";
 	pcs_number_of_evals++;
 	// pcs_eval_name[pcs_number_of_evals] = "SOLID_HEAT_CAP";
 	// pcs_eval_unit[pcs_number_of_evals] = "J/kgK";
@@ -4224,6 +4232,11 @@ void CRFProcess::ConfigTES()
 	pcs_secondary_function_unit[pcs_number_of_secondary_nvals] = "J/kgK";
 	pcs_secondary_function_timelevel[pcs_number_of_secondary_nvals] = 1;
 	pcs_number_of_secondary_nvals++;
+	// Integral degree of conversion output
+	pcs_secondary_function_name[pcs_number_of_secondary_nvals] = "INT_CONVERSION_N"; //TN TEST
+	pcs_secondary_function_unit[pcs_number_of_secondary_nvals] = "-";
+	pcs_secondary_function_timelevel[pcs_number_of_secondary_nvals] = 1;
+	pcs_number_of_secondary_nvals++;
 
 	pcs_number_of_evals = 0;
 	pcs_eval_name[pcs_number_of_evals] = "VELOCITY1_X";
@@ -4246,6 +4259,9 @@ void CRFProcess::ConfigTES()
 	pcs_number_of_evals++;
 	pcs_eval_name[pcs_number_of_evals] = "REACT_RATE";
 	pcs_eval_unit[pcs_number_of_evals] = "kg/m3s";
+	pcs_number_of_evals++;
+	pcs_eval_name[pcs_number_of_evals] = "INT_CONVERSION";
+	pcs_eval_unit[pcs_number_of_evals] = "-";
 	pcs_number_of_evals++;
 	// pcs_eval_name[pcs_number_of_evals] = "SOLID_HEAT_CAP";
 	// pcs_eval_unit[pcs_number_of_evals] = "J/kgK";
