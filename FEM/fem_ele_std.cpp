@@ -6227,8 +6227,8 @@ void CFiniteElementStd::CalcSolidDensityRate()
 				gp_ele->q_R[gp] = y_dot_new * (1.0 - xv_NR);
 
 				gp_ele->q_R_int_curr[gp]
-				    = gp_ele->q_R_int_prev
-				      + delta_t * std::abs(gp_ele->rho_s_curr[gp])
+				    = gp_ele->q_R_int_prev[gp]
+				      + delta_t * std::abs(gp_ele->q_R[gp])
 				            / (SolidProp->upper_solid_density_limit - SolidProp->lower_solid_density_limit);
 #else
 				std::cout << "Error: CMake option OGS_USE_CVODE needs to be set to solve this process type!"
