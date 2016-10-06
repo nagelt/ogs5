@@ -8994,7 +8994,7 @@ void CFiniteElementStd::Assembly()
 			//    CalNodalEnthalpy();
 			// CMCD4213
 			AssembleMixedHyperbolicParabolicEquation();
-            if (true)//TODO: If heat source defined
+            if (std::abs(SolidProp->volumetric_heat_source) > DBL_EPSILON)
                 Assemble_RHS_HEAT_SOURCE();
 			if (FluidProp->density_model == 14 && MediaProp->heat_diffusion_model == 1 && cpl_pcs)
 				Assemble_RHS_HEAT_TRANSPORT(); // This include when need pressure terms n dp/dt + nv.Nabla p//AKS
@@ -10844,7 +10844,7 @@ void CFiniteElementStd::Assemble_RHS_HEAT_SOURCE()
         for (ii = 0; ii < dof_n; ii++)
         {
             // Material
-            fac = 0.; //TODO volumetric heat source goes here
+            fac = SolidProp->volumetric_heat_source;
 
             for (i = 0; i < nnodes; i++)
                 NodalVal[i + ii * nnodes] += fac * fkt * shapefct[i];

@@ -896,6 +896,13 @@ std::ios::pos_type CSolidProperties::Read(std::ifstream* msp_file)
 			in_sd.clear();
 		}
 
+        if (line_string.find("$VOLUMETRIC_HEAT_SOURCE") != string::npos)
+        {
+            in_sd.str(GetLineFromFile1(msp_file));
+            in_sd >> volumetric_heat_source;
+            in_sd.clear();
+        }
+
 		if (line_string.find("$SPECIFIC_HEAT_SOURCE") != string::npos)
 		{
 			in_sd.str(GetLineFromFile1(msp_file));
@@ -1110,6 +1117,7 @@ CSolidProperties::CSolidProperties()
 	material_burgers = NULL;
 	T_ref_enthalpy_correction = 573.15;
 	specific_heat_source = 0.0;
+    volumetric_heat_source = 0.0;
 
 	bishop_model = -1; // 15.08.2011. WW
 }

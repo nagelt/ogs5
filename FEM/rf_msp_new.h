@@ -338,6 +338,7 @@ private:
 	double non_reactive_solid_density;
 	double T_ref_enthalpy_correction;
 	double specific_heat_source;
+    double volumetric_heat_source;
 
 	// CMCD
 	void CalPrimaryVariable(std::vector<std::string>& pcs_name_vector);
