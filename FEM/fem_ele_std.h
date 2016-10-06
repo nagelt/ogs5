@@ -403,6 +403,7 @@ protected:
 	void Assemble_RHS_Pc(); // 03.2009 PCH
 	void Assemble_RHS_AIR_FLOW(); // AKS
 	void Assemble_RHS_HEAT_TRANSPORT(); // AKS
+    void Assemble_RHS_HEAT_SOURCE(); // AKS
 	void Assemble_RHS_TNEQ(); // AKS
 	void Assemble_RHS_TES(); // AKS
 	void Assemble_RHS_HEAT_TRANSPORT2(); // AKS

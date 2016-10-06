@@ -8994,6 +8994,8 @@ void CFiniteElementStd::Assembly()
 			//    CalNodalEnthalpy();
 			// CMCD4213
 			AssembleMixedHyperbolicParabolicEquation();
+            if (true)//TODO: If heat source defined
+                Assemble_RHS_HEAT_SOURCE();
 			if (FluidProp->density_model == 14 && MediaProp->heat_diffusion_model == 1 && cpl_pcs)
 				Assemble_RHS_HEAT_TRANSPORT(); // This include when need pressure terms n dp/dt + nv.Nabla p//AKS
 			if (MediaProp->evaporation == 647)
@@ -10243,6 +10245,7 @@ double CFiniteElementStd::CalCoef_RHS_AIR_FLOW(int dof_index)
 	}
 	return val;
 }
+
 /**************************************************************************
    FEMLib-Method:
    Task: Calculate RHS of pressure coupled term
@@ -10807,6 +10810,58 @@ void CFiniteElementStd::Assemble_RHS_AIR_FLOW()
 			(*RHS)[i + LocalShift + ii_sh] -= NodalVal[i + ii_sh];
 		}
 	}
+}
+
+/***************************************************************************
+   GeoSys - Funktion:
+   Assemble_RHS_HEAT_SOURCE: Add a volumetric heat source to the RHS of the
+   HEAT_TRANSPORT process
+ **************************************************************************/
+
+void CFiniteElementStd::Assemble_RHS_HEAT_SOURCE()
+{
+    int i, ii;
+    // ---- Gauss integral
+    int gp_r = 0, gp_s = 0, gp_t = 0;
+    double fkt = 0.0, fac = 0.0;
+    // Material
+    int dof_n = 1;
+    //----------------------------------------------------------------------
+    for (i = 0; i < dof_n * nnodes; i++)
+        NodalVal[i] = 0.0;
+    //======================================================================
+    // Loop over Gauss points
+    for (gp = 0; gp < nGaussPoints; gp++)
+    {
+        //---------------------------------------------------------
+        //  Get local coordinates and weights
+        //  Compute Jacobian matrix and its determinate
+        //---------------------------------------------------------
+        fkt = GetGaussData(gp, gp_r, gp_s, gp_t);
+        // Compute geometry
+        getShapefunctValues(gp, 1); // Linear interpolation function
+
+        for (ii = 0; ii < dof_n; ii++)
+        {
+            // Material
+            fac = 0.; //TODO volumetric heat source goes here
+
+            for (i = 0; i < nnodes; i++)
+                NodalVal[i + ii * nnodes] += fac * fkt * shapefct[i];
+        }
+    }
+    for (ii = 0; ii < pcs->dof; ii++)
+    {
+        int ii_sh = ii * nnodes;
+        for (i = 0; i < nnodes; i++)
+        {
+#if !defined(USE_PETSC) // && !defined(other parallel libs)//03~04.3012. WW
+            int i_sh = NodeShift[ii];
+            eqs_rhs[i_sh + eqs_number[i]] -= NodalVal[i + ii_sh];
+#endif
+            (*RHS)[i + LocalShift + ii_sh] -= NodalVal[i + ii_sh];
+        }
+    }
 }
 
 /***************************************************************************
