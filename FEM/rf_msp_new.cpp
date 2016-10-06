@@ -898,9 +898,24 @@ std::ios::pos_type CSolidProperties::Read(std::ifstream* msp_file)
 
         if (line_string.find("$VOLUMETRIC_HEAT_SOURCE") != string::npos)
         {
+            std::string source_type;
             in_sd.str(GetLineFromFile1(msp_file));
-            in_sd >> volumetric_heat_source;
+            in_sd >> source_type;
             in_sd.clear();
+            if (source_type.compare("constant") == 0)
+            {
+                in_sd.str(GetLineFromFile1(msp_file));
+                in_sd >> volumetric_heat_source;
+                in_sd.clear();
+            }
+            else if (source_type.compare("curve") == 0)
+            {
+                heat_source_curve = 1;
+                in_sd.str(GetLineFromFile1(msp_file));
+                in_sd >> heat_source_curve_id;
+                in_sd.clear();
+            }
+
         }
 
 		if (line_string.find("$SPECIFIC_HEAT_SOURCE") != string::npos)
@@ -1033,6 +1048,8 @@ CSolidProperties::CSolidProperties()
 	Creep_mode = -1;
 	grav_const = 9.81; // WW
 	gravity_ramp = 0;
+    heat_source_curve = 0;
+    heat_source_curve_id = 0;
 	excavation = -1; // 12.2009. WW
 	excavated = false; // To be .....  12.2009. WW
 	E_Function_Model = -1; // WX:06.2012 E dependence

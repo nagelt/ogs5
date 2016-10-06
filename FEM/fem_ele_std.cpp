@@ -8994,7 +8994,7 @@ void CFiniteElementStd::Assembly()
 			//    CalNodalEnthalpy();
 			// CMCD4213
 			AssembleMixedHyperbolicParabolicEquation();
-            if (std::abs(SolidProp->volumetric_heat_source) > DBL_EPSILON)
+            if (std::abs(SolidProp->volumetric_heat_source || SolidProp->heat_source_curve) > DBL_EPSILON)
                 Assemble_RHS_HEAT_SOURCE();
 			if (FluidProp->density_model == 14 && MediaProp->heat_diffusion_model == 1 && cpl_pcs)
 				Assemble_RHS_HEAT_TRANSPORT(); // This include when need pressure terms n dp/dt + nv.Nabla p//AKS
@@ -10826,6 +10826,16 @@ void CFiniteElementStd::Assemble_RHS_HEAT_SOURCE()
     double fkt = 0.0, fac = 0.0;
     // Material
     int dof_n = 1;
+    if (SolidProp->heat_source_curve)
+    {
+        const int curveIndex = SolidProp->heat_source_curve_id;
+        const int curveMethod = 0;
+        int valid;
+        fac = GetCurveValue(curveIndex, curveMethod, aktuelle_zeit, &valid);
+    }
+    else
+        fac = SolidProp->volumetric_heat_source;
+
     //----------------------------------------------------------------------
     for (i = 0; i < dof_n * nnodes; i++)
         NodalVal[i] = 0.0;
@@ -10842,13 +10852,8 @@ void CFiniteElementStd::Assemble_RHS_HEAT_SOURCE()
         getShapefunctValues(gp, 1); // Linear interpolation function
 
         for (ii = 0; ii < dof_n; ii++)
-        {
-            // Material
-            fac = SolidProp->volumetric_heat_source;
-
             for (i = 0; i < nnodes; i++)
                 NodalVal[i + ii * nnodes] += fac * fkt * shapefct[i];
-        }
     }
     for (ii = 0; ii < pcs->dof; ii++)
     {
@@ -11087,7 +11092,7 @@ void CFiniteElementStd::Assemble_RHS_HEAT_TRANSPORT2()
 			CalCoef_RHS_HEAT_TRANSPORT2(2);
 			for (i = 0; i < nnodes; i++)
 				for (size_t k = 0; k < dim; k++)
-					NodalVal[i] -= fkt * mat[dim * k + dim - 1] * FluidProp->Density(dens_arg) * gravity_constant
+                    NodalVal[i] -= fkt * mat[dim * k + dim - 1] * FluidProp->Density(dens_arg) * gravity_constant
 					               * dshapefct[k * nnodes + i];
 		}
 	}

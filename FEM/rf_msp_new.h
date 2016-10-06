@@ -187,6 +187,8 @@ private:
 	double grav_const; // WW
 	int grav_curve_id; // NB
 	bool gravity_ramp; // NB
+    int heat_source_curve_id; // NB
+    bool heat_source_curve; // NB
 	Math_Group::Matrix* data_Density;
 	//
 	Math_Group::Matrix* data_Capacity;
