@@ -612,7 +612,7 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
 	{
 		Jac.block<1, 6>(25, 0) = -2. * lam_curr * lam_curr / (3. * eff_flow) * dev_flow.transpose()
 		                         * Ddev_flowDsigma.transpose();
-		Jac.block<1, 1>(25, 26)(0) = -2. / (3. * eff_flow) * std::abs(lam_curr)
+		Jac.block<1, 1>(25, 26)(0) = -2. / (3. * eff_flow) * lam_curr
 		                             * (double)(dev_flow.transpose() * dev_flow);
 	}
 	// G_62 to G_64 and G_65 are zero
