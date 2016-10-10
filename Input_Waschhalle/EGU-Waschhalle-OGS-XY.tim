@@ -1,0 +1,13 @@
+;Zeitschritte für die Rechnung
+#TIME_STEPPING
+ $PCS_TYPE
+  HEAT_TRANSPORT
+ $TIME_START
+  0
+ $TIME_END	
+  2422800
+ $TIME_STEPS	
+  673 3600
+  
+#STOP
+

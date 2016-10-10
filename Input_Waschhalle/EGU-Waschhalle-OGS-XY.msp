@@ -1,0 +1,81 @@
+;Feststoffeigenschaften
+;Sand trocken
+
+;Zement vereinfachende Annahme thermische Eigenschaften Konstant über die Zeit
+#SOLID_PROPERTIES
+ $DENSITY
+  1 1650.0
+ $THERMAL
+  EXPANSION
+   1 0.00001
+  CAPACITY 
+   1 1130.0
+  CONDUCTIVITY 
+   1 2.0
+ $VOLUMETRIC_HEAT_SOURCE
+   curve
+   1
+
+#STOP
+
+#SOLID_PROPERTIES
+ $DENSITY
+  1 1900.0
+ $THERMAL
+  EXPANSION
+   1 0.0
+  CAPACITY 
+   1 1450.0
+  CONDUCTIVITY 
+   1 0.4
+   
+;HD-PE-100
+#SOLID_PROPERTIES
+ $DENSITY
+  1 963.0
+ $THERMAL
+  EXPANSION
+   1 0.00015
+  CAPACITY 
+   1 1900.0
+  CONDUCTIVITY 
+   1 0.42
+
+;Zement vereinfachende Annahme thermische Eigenschaften Konstant über die Zeit
+#SOLID_PROPERTIES
+ $DENSITY
+  1 1650.0
+ $THERMAL
+  EXPANSION
+   1 0.00001
+  CAPACITY 
+   1 1130.0
+  CONDUCTIVITY 
+   1 2.0
+
+;PVC-U Rohr
+#SOLID_PROPERTIES
+ $DENSITY
+  1 1400.0
+ $THERMAL
+  EXPANSION
+   1 0.00008
+  CAPACITY 
+   1 850.0
+  CONDUCTIVITY 
+   1 0.15
+
+;Styrol-Butadien Isoltion Elastomerschaumstoff
+#SOLID_PROPERTIES
+ $DENSITY
+  1 53.14
+ $THERMAL
+  EXPANSION
+   1 0.000
+  CAPACITY 
+   1 1019.75
+  CONDUCTIVITY 
+   1 0.33
+   #1 0.033
+
+#STOP
