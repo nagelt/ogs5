@@ -828,7 +828,7 @@ double CRFProcessDeformation::Execute(int loop_process_number)
 #if defined(USE_MPI) || defined(USE_PETSC)
 				}
 #endif
-				if (Error <= Tolerance_global_Newton && Norm <= m_num->nls_abs_residual_tolerance
+                if (Error <= m_num->nls_error_tolerance[0] && Norm <= m_num->nls_abs_residual_tolerance
 				    && NormU <= m_num->nls_abs_unknown_tolerance
 				    && ErrorU <= m_num->nls_rel_unknown_tolerance)
 				{
