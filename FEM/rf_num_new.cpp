@@ -726,7 +726,7 @@ ios::pos_type CNumerics::Read(ifstream* num_file)
 			line >> nls_rel_unknown_tolerance;
 			line.clear();
 			std::cout << "Additional Newton tolerances have been set. Global NR will converge if: " << std::endl;
-			std::cout << "  DeltaF/DeltaF0 <= " << nls_error_tolerance << " (set using $NON_LINEAR_ITERATIONS)"
+            std::cout << "  DeltaF/DeltaF0 <= " << nls_error_tolerance[0] << " (set using $NON_LINEAR_ITERATIONS)"
 			          << std::endl;
 			std::cout << "  && DeltaF <= " << nls_abs_residual_tolerance << std::endl;
 			std::cout << "  && DeltaU <= " << nls_abs_unknown_tolerance << std::endl;
