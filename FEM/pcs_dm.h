@@ -166,4 +166,6 @@ extern int number_of_load_steps;
 extern int problem_dimension_dm;
 extern int PreLoad;
 extern bool GravityForce;
+extern double Local_Newton_Damping_Tolerance;
+extern double Local_Newton_Damping_Factor;
 #endif
