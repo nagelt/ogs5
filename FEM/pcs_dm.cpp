@@ -64,6 +64,8 @@ using namespace std;
 double LoadFactor = 1.0;
 double Tolerance_global_Newton = 0.0;
 double Tolerance_Local_Newton = 0.0;
+double Local_Newton_Damping_Tolerance = 1.e3;
+double Local_Newton_Damping_Factor = 1.;
 int enhanced_strain_dm = 0;
 int number_of_load_steps = 1;
 int problem_dimension_dm = 0;
@@ -174,6 +176,8 @@ void CRFProcessDeformation::Initialization()
 	{
 		Tolerance_Local_Newton = m_num->nls_plasticity_local_tolerance;
 		Tolerance_global_Newton = m_num->nls_error_tolerance[0];
+		Local_Newton_Damping_Factor = m_num->local_newton_damping_factor;
+		Local_Newton_Damping_Tolerance = m_num->local_newton_damping_tolerance;
 	}
 
 	// Initialize material transform tensor for tansverse isotropic elasticity
