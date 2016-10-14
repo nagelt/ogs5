@@ -128,6 +128,8 @@ CNumerics::CNumerics(string name)
 	fct_const_alpha = -1.0; // NW
 	newton_damping_factor = 1.0;
 	newton_damping_tolerance = 1.e3;
+	local_newton_damping_factor = 1.0;
+	local_newton_damping_tolerance = 1.e3;
 	nls_abs_residual_tolerance = std::numeric_limits<double>::max();
 	nls_abs_unknown_tolerance = std::numeric_limits<double>::max();
 	nls_rel_unknown_tolerance = std::numeric_limits<double>::max();
@@ -705,7 +707,7 @@ ios::pos_type CNumerics::Read(ifstream* num_file)
 			     << "\n";
 			continue;
 		}
-		// Automatic damping of Newton scheme
+		// Residual-activated damping of Newton scheme
 		if (line_string.find("$NEWTON_DAMPING") != string::npos)
 		{
 			line.str(GetLineFromFile1(num_file));
@@ -715,6 +717,19 @@ ios::pos_type CNumerics::Read(ifstream* num_file)
 			std::cout << "NR step will be damped by " << newton_damping_factor
 			          << " if relative residual or relative unknown increment decrease by less than "
 			          << newton_damping_tolerance << " from one iteration to the next." << std::endl;
+			continue;
+		}
+		// Residual-activated damping of local Newton scheme (so far only Minkley model)
+		if (line_string.find("$LOCAL_NEWTON_DAMPING") != string::npos)
+		{
+			line.str(GetLineFromFile1(num_file));
+			line >> local_newton_damping_tolerance; // if NR error decreases by less than this factor, the next step
+			// will be dampened
+			line >> local_newton_damping_factor; // dampened by this factor
+			line.clear();
+			std::cout << "Local NR step will be damped by " << local_newton_damping_factor
+			          << " if norm of local residual decreases by less than " << local_newton_damping_tolerance
+			          << " from one local iteration to the next." << std::endl;
 			continue;
 		}
 		// Extended convergence test for Newton

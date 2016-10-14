@@ -1681,8 +1681,8 @@ void CSolidProperties::ExtractConsistentTangent(const Eigen::MatrixXd& Jac, cons
 	Eigen::MatrixXd dzdE(local_dim, 6);
 	// solve linear system
 	if (pivoting)
-		dzdE = Jac.fullPivHouseholderQr().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
-		//dzdE = Jac.fullPivLu().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
+		// dzdE = Jac.fullPivHouseholderQr().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
+		dzdE = Jac.fullPivLu().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
 	else
 		dzdE = Jac.householderQr().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
 	// in-built Gauss elimination solver was at least 4 OoM more inaccurate.
@@ -1925,7 +1925,8 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 		material_minkley->CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t, eps_pl_j,
 												  eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t, lam, res_loc_p);
 		material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, e_pl_eff, K_loc_p);
-		while (res_loc_p.norm() > Tolerance_Local_Newton && counter < 2*counter_max)
+		double old_res = res_loc_p.norm();
+		while (old_res > Tolerance_Local_Newton && counter < 2 * counter_max)
 		{
 			counter++;
 			// Solve linear system; Choice of solver can be influenced by material properties/property ratios
@@ -1956,6 +1957,26 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 					<< res_loc_p.norm() << " plastic" << std::endl;
 				Dum.close();
 			}
+			// basic Damping
+			if (res_loc_p.norm() / old_res > Local_Newton_Damping_Tolerance)
+			{
+				sig_j -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<6, 1>(0, 0);
+				eps_K_j -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<6, 1>(6, 0);
+				eps_M_j -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<6, 1>(12, 0);
+				eps_pl_j -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<6, 1>(18, 0);
+				e_pl_v -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<1, 1>(24, 0)(0);
+				e_pl_eff -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<1, 1>(25, 0)(0);
+				lam -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<1, 1>(26, 0)(0);
+				// Calculate effective stress and update material properties
+				sig_eff = SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j);
+				material_minkley->UpdateMinkleyProperties(sig_eff, e_pl_eff, Temperature);
+				// evaluation of new residual
+				material_minkley->CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t,
+				                                          eps_pl_j, eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t,
+				                                          lam, res_loc_p);
+				material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, e_pl_eff, K_loc_p);
+			}
+			old_res = res_loc_p.norm();
 		}
 		// dGdE matrix and dsigdE matrix
 		Eigen::Matrix<double, 27, 6> dGdE;
