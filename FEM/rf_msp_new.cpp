@@ -1926,6 +1926,10 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 												  eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t, lam, res_loc_p);
 		material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, e_pl_eff, K_loc_p);
 		double old_res = res_loc_p.norm();
+		const double step_size = 0.01;
+		const int steps = 100;
+		double min_res = old_res;
+		int min_loc = 0;
 		while (old_res > Tolerance_Local_Newton && counter < 2 * counter_max)
 		{
 			counter++;
@@ -1958,15 +1962,48 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 				Dum.close();
 			}
 			// basic Damping
+
 			if (res_loc_p.norm() / old_res > Local_Newton_Damping_Tolerance)
 			{
-				sig_j -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<6, 1>(0, 0);
-				eps_K_j -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<6, 1>(6, 0);
-				eps_M_j -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<6, 1>(12, 0);
-				eps_pl_j -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<6, 1>(18, 0);
-				e_pl_v -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<1, 1>(24, 0)(0);
-				e_pl_eff -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<1, 1>(25, 0)(0);
-				lam -= (1. - Local_Newton_Damping_Factor) * inc_loc_p.block<1, 1>(26, 0)(0);
+				if (res_loc_p.norm() / old_res > 1.)
+				{
+					min_res = old_res;
+					min_loc = steps;
+				}
+				else
+				{
+					min_res = res_loc_p.norm();
+					min_loc = 0.;
+				}
+				for (int scan = 1; scan <= steps; scan++)
+				{
+					sig_j -= step_size * inc_loc_p.block<6, 1>(0, 0);
+					eps_K_j -= step_size * inc_loc_p.block<6, 1>(6, 0);
+					eps_M_j -= step_size * inc_loc_p.block<6, 1>(12, 0);
+					eps_pl_j -= step_size * inc_loc_p.block<6, 1>(18, 0);
+					e_pl_v -= step_size * inc_loc_p.block<1, 1>(24, 0)(0);
+					e_pl_eff -= step_size * inc_loc_p.block<1, 1>(25, 0)(0);
+					lam -= step_size * inc_loc_p.block<1, 1>(26, 0)(0);
+					// Calculate effective stress and update material properties
+					sig_eff = SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j);
+					material_minkley->UpdateMinkleyProperties(sig_eff, e_pl_eff, Temperature);
+					// evaluation of new residual
+					material_minkley->CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j,
+					                                          eps_M_t, eps_pl_j, eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff,
+					                                          e_pl_eff_t, lam, res_loc_p);
+					if (res_loc_p.norm() < min_res)
+					{
+						min_res = res_loc_p.norm();
+						min_loc = scan;
+					}
+				}
+				sig_j += (steps - min_loc) * step_size * inc_loc_p.block<6, 1>(0, 0);
+				eps_K_j += (steps - min_loc) * step_size * inc_loc_p.block<6, 1>(6, 0);
+				eps_M_j += (steps - min_loc) * step_size * inc_loc_p.block<6, 1>(12, 0);
+				eps_pl_j += (steps - min_loc) * step_size * inc_loc_p.block<6, 1>(18, 0);
+				e_pl_v += (steps - min_loc) * step_size * inc_loc_p.block<1, 1>(24, 0)(0);
+				e_pl_eff += (steps - min_loc) * step_size * inc_loc_p.block<1, 1>(25, 0)(0);
+				lam += (steps - min_loc) * step_size * inc_loc_p.block<1, 1>(26, 0)(0);
 				// Calculate effective stress and update material properties
 				sig_eff = SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j);
 				material_minkley->UpdateMinkleyProperties(sig_eff, e_pl_eff, Temperature);
