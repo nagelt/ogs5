@@ -1947,16 +1947,6 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 			material_minkley->CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t,
 													  eps_pl_j, eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t, lam,
 													  res_loc_p);
-			// Get Jacobian
-			material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, e_pl_eff, K_loc_p);
-			if (Output)
-			{
-				CRFProcess* m_pcs = PCSGet("DEFORMATION");
-				ofstream Dum("local.txt", ios::app);
-				Dum << aktueller_zeitschritt << " " << m_pcs->GetIteSteps() << " " << counter + 1 << " "
-					<< res_loc_p.norm() << " plastic" << std::endl;
-				Dum.close();
-			}
 			// basic Damping
 			if (res_loc_p.norm() / old_res > Local_Newton_Damping_Tolerance)
 			{
@@ -1974,9 +1964,19 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 				material_minkley->CalViscoplasticResidual(dt, epsd_i, e_i, sig_j, eps_K_j, eps_K_t, eps_M_j, eps_M_t,
 				                                          eps_pl_j, eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t,
 				                                          lam, res_loc_p);
-				material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, e_pl_eff, K_loc_p);
 			}
 			old_res = res_loc_p.norm();
+
+			// Get Jacobian
+			material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, e_pl_eff, K_loc_p);
+			if (Output)
+			{
+				CRFProcess* m_pcs = PCSGet("DEFORMATION");
+				ofstream Dum("local.txt", ios::app);
+				Dum << aktueller_zeitschritt << " " << m_pcs->GetIteSteps() << " " << counter + 1 << " "
+				    << res_loc_p.norm() << " plastic" << std::endl;
+				Dum.close();
+			}
 		}
 		// dGdE matrix and dsigdE matrix
 		Eigen::Matrix<double, 27, 6> dGdE;
