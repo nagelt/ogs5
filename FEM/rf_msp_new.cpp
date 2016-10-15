@@ -1681,8 +1681,8 @@ void CSolidProperties::ExtractConsistentTangent(const Eigen::MatrixXd& Jac, cons
 	Eigen::MatrixXd dzdE(local_dim, 6);
 	// solve linear system
 	if (pivoting)
-		dzdE = Jac.fullPivHouseholderQr().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
-		//dzdE = Jac.fullPivLu().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
+		// dzdE = Jac.fullPivHouseholderQr().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
+		dzdE = Jac.fullPivLu().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
 	else
 		dzdE = Jac.householderQr().solve(-1.0 * dGdE); // Could consider moving to different Eigen solver.
 	// in-built Gauss elimination solver was at least 4 OoM more inaccurate.
