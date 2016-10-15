@@ -2687,6 +2687,14 @@ void CFiniteElementVec::GlobalAssembly_RHS()
 				Sxz[gp] = dstrain[4];
 				Syz[gp] = dstrain[5];
 				break;
+			case MshElemType::PRISM:
+				Sxx[gp] = dstrain[0];
+				Syy[gp] = dstrain[1];
+				Szz[gp] = dstrain[2];
+				Sxy[gp] = dstrain[3];
+				Sxz[gp] = dstrain[4];
+				Syz[gp] = dstrain[5];
+				break;
 			default:
 				break;
 				// 3D
