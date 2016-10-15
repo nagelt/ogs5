@@ -1896,8 +1896,8 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 												  eps_pl_t, e_pl_v, e_pl_v_t, e_pl_eff, e_pl_eff_t, lam, res_loc_p);
 		material_minkley->CalViscoplasticJacobian(dt, sig_j, sig_eff, lam, e_pl_eff, K_loc_p);
 		double old_res = res_loc_p.norm();
-		const double step_size = 0.01;
-		const int steps = 100;
+		const int steps = 10;
+		const double step_size = (1. - Local_Newton_Damping_Factor) / steps;
 		double min_res = old_res;
 		int min_loc = 0;
 		while (old_res > Tolerance_Local_Newton && counter < 2 * counter_max)
@@ -1959,13 +1959,15 @@ void CSolidProperties::LocalNewtonMinkley(const double dt, const std::vector<dou
 						min_loc = scan;
 					}
 				}
-				sig_j += (steps - min_loc) * step_size * inc_loc_p.block<6, 1>(0, 0);
-				eps_K_j += (steps - min_loc) * step_size * inc_loc_p.block<6, 1>(6, 0);
-				eps_M_j += (steps - min_loc) * step_size * inc_loc_p.block<6, 1>(12, 0);
-				eps_pl_j += (steps - min_loc) * step_size * inc_loc_p.block<6, 1>(18, 0);
-				e_pl_v += (steps - min_loc) * step_size * inc_loc_p.block<1, 1>(24, 0)(0);
-				e_pl_eff += (steps - min_loc) * step_size * inc_loc_p.block<1, 1>(25, 0)(0);
-				lam += (steps - min_loc) * step_size * inc_loc_p.block<1, 1>(26, 0)(0);
+				// double damp = std::max(Local_Newton_Damping_Factor, (steps - min_loc) * step_size);
+				double damp = (steps - min_loc) * step_size;
+				sig_j += damp * inc_loc_p.block<6, 1>(0, 0);
+				eps_K_j += damp * inc_loc_p.block<6, 1>(6, 0);
+				eps_M_j += damp * inc_loc_p.block<6, 1>(12, 0);
+				eps_pl_j += damp * inc_loc_p.block<6, 1>(18, 0);
+				e_pl_v += damp * inc_loc_p.block<1, 1>(24, 0)(0);
+				e_pl_eff += damp * inc_loc_p.block<1, 1>(25, 0)(0);
+				lam += damp * inc_loc_p.block<1, 1>(26, 0)(0);
 				// Calculate effective stress and update material properties
 				sig_eff = SolidMath::CalEffectiveStress(SolidMath::P_dev * sig_j);
 				material_minkley->UpdateMinkleyProperties(sig_eff, e_pl_eff, Temperature);
