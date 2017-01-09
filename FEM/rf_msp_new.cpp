@@ -622,7 +622,7 @@ std::ios::pos_type CSolidProperties::Read(std::ifstream* msp_file)
 				//  5: m -- effective stress factor in viscosity relationship
 				//  6: n -- effective stress exponent in viscosity relationship
 				//  7: initial cohesion
-				//  8: hardening/softening modulus
+				//  8: residual cohesion
 				//  9: friction angle
 				// 10: dilatancy angle
 				// 11: transition angle for corner smoothing
@@ -632,12 +632,15 @@ std::ios::pos_type CSolidProperties::Read(std::ifstream* msp_file)
 				// 15: T_ref // reference temperature;
 				// 16: B // constant factor for Arrhenius term
 				// 17: Q // activation energy in Arrhenius term
-				// 18: h2 // second order hardening term
-				// 19: h4 // fourth order hardening term
+				// 18: A1 // first coefficient of sine-hardening part
+				// 19: A2 // second coefficient of sine-hardening part
+				// 20: B1 // first coefficient of sigmoid softening cut-off
+				// 21: B2 // second coefficient of sigmoid softening cut-off
 
-				data_Creep = new Matrix(20);
+				data_Creep = new Matrix(22);
 				in_sd.str(GetLineFromFile1(msp_file));
-				for (i = 0; i < 20; i++){
+				for (i = 0; i < 22; i++)
+				{
 					(*data_Creep)(i) = 0.;
 					in_sd >> (*data_Creep)(i);
 				}

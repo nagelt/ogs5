@@ -216,10 +216,10 @@ TEST(SolidProps, Lubby2JacobianNumeric)
 TEST(SolidProps, YieldMohrCoulomb)
 {
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(20);
+	data = new Math_Group::Matrix(22);
 
 	// set Constants
-	for (int i(0); i < 20; i++)
+	for (int i(0); i < 22; i++)
 		(*data)(i) = (double)i;
 
 	(*data)(7) = 2.; // cohesion
@@ -254,7 +254,7 @@ TEST(SolidProps, YieldMohrCoulomb)
 TEST(SolidProps, MinkleyJacobianNumeric)
 {
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(20);
+	data = new Math_Group::Matrix(22);
 
 	// set Constants
 	(*data)(0) = 63.e3; // Kelvin shear modulus
@@ -265,7 +265,7 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 	(*data)(5) = 4.9; // dependency parameter for " (m)
 	(*data)(6) = 0.33; // dependency parameter for " (n)
 	(*data)(7) = 2.; // cohesion
-	(*data)(8) = 1.; // hardening
+	(*data)(8) = 0.2; // residual cohesion
 	(*data)(9) = 30.; // friction angle
 	(*data)(10) = 10.; // dilatancy angle
 	(*data)(11) = 28.; // transition angle
@@ -275,8 +275,10 @@ TEST(SolidProps, MinkleyJacobianNumeric)
 	(*data)(15) = 273.; // reference temperature dependency parameter for "
 	(*data)(16) = 1.; // constant factor for Arrhenius term
 	(*data)(17) = 0.; // activation energy in Arrhenius term
-	(*data)(18) = 0.; //second order hardening
-	(*data)(19) = 0.; //fourth order hardening
+	(*data)(18) = 1.; // sine
+	(*data)(19) = 1.e-3; // sine
+	(*data)(20) = 2.e3; // sigmoid
+	(*data)(21) = 3.e-3; // sigmoid
 	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
@@ -447,7 +449,7 @@ TEST(SolidProps, MinkleyFullResidual)
 	(*data)(16) = 1.; // constant factor for Arrhenius term
 	(*data)(17) = 0.; // activation energy in Arrhenius term
 	(*data)(18) = 0.; //second order hardening
-	(*data)(19) = 0.; //fourth order hardening
+	(*data)(19) = 1.; // fourth order hardening
 	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
@@ -545,7 +547,7 @@ TEST(SolidProps, MinkleyFullResidual)
 TEST(SolidProps, MinkleyFullJacobian)
 {
 	Math_Group::Matrix* data;
-	data = new Math_Group::Matrix(20);
+	data = new Math_Group::Matrix(22);
 
 	// set Constants
 	(*data)(0) = 63.e3; // Kelvin shear modulus
@@ -556,7 +558,7 @@ TEST(SolidProps, MinkleyFullJacobian)
 	(*data)(5) = 4.9; // dependency parameter for " (m)
 	(*data)(6) = 0.33; // dependency parameter for " (n)
 	(*data)(7) = 2.; // cohesion
-	(*data)(8) = 100.; // hardening
+	(*data)(8) = 0.2; // residual cohesion
 	(*data)(9) = 30.; // friction angle
 	(*data)(10) = 10.; // dilatancy angle
 	(*data)(11) = 29.; // transition angle
@@ -566,8 +568,10 @@ TEST(SolidProps, MinkleyFullJacobian)
 	(*data)(15) = 273.15; // reference temperature dependency parameter for "
 	(*data)(16) = 1.; // constant factor for Arrhenius term
 	(*data)(17) = 0.; // activation energy in Arrhenius term
-	(*data)(18) = -1.e4; //second order hardening
-	(*data)(19) = -1.e6; //fourth order hardening
+	(*data)(18) = 1.; // sine
+	(*data)(19) = 1.e-3; // sine
+	(*data)(20) = 2.e3; // sigmoid
+	(*data)(21) = 3.e-3; // sigmoid
 	Minkley::SolidMinkley material(*data);
 
 	// state and trial variables
