@@ -86,12 +86,8 @@ void SolidMinkley::UpdateMinkleyProperties(double s_eff, const double eps_p_eff,
 		etaM = etaM0;
 	etaM *= Bt * std::exp(Q * (-dT) / (PhysicalConstant::IdealGasConstant * Temperature * T_ref));
 
-	coh = coh0
-	      * (1.
-	         + eps_p_eff
-	               * (hard
-	                  + eps_p_eff
-	                        * (hard2 + eps_p_eff * eps_p_eff * hard4))); // fourth order isotropic hardening/softening
+	coh = std::max(coh0 * (1. + eps_p_eff * (hard + eps_p_eff * (hard2 + eps_p_eff * eps_p_eff * hard4))),
+	               coh0 / 10.); // fourth order isotropic hardening/softening
 	//	if (etaM / etaM0 < 1.e-2)
 	//		std::cout << "WARNING: Maxwell viscosity sank to 100th of original value." << std::endl;
 }
@@ -634,7 +630,9 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
 	// G_72 - G_75 zero
 
 	// build G_76
-	Jac.block<1, 1>(26, 25)(0) = -coh0 * (hard + 2. * e_eff_i * (hard2 + 2.*e_eff_i*e_eff_i*hard4)) * std::cos(phi) / GM;
+	if ((coh - coh0 / 10.) > DBL_EPSILON)
+		Jac.block<1, 1>(26, 25)(0) = -coh0 * (hard + 2. * e_eff_i * (hard2 + 2. * e_eff_i * e_eff_i * hard4))
+		                             * std::cos(phi) / GM;
 
 	// build G_77
 	Jac.block<1, 1>(26, 26)(0) = -eta_reg;
