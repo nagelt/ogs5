@@ -34,7 +34,7 @@ public:
 	// solution dependent values
 	double etaM, GM, KM;
 	// Parameters for Minkley model
-	double nvM, coh0, hard, phi, psi, thetaT, eta_reg, hard2, hard4;
+	double nvM, coh0, coh_res, phi, psi, thetaT, eta_reg, hard_A1, hard_A2, hard_B1, hard_B2;
 	// solution dependent
 	double coh;
 	double m_GM; // slope of elesticity temperature dependence

@@ -38,7 +38,7 @@ SolidMinkley::SolidMinkley(const Math_Group::Matrix& data)
 		nvM = data(6); // n -- effective stress exponent in viscosity relationship
 	}
 	coh0 = data(7); // initial cohesion
-	hard = data(8); // hardening/softening modulus
+	coh_res = data(8); // residual cohesion
 	phi = data(9) * PI / 180.; // friction angle
 	psi = data(10) * PI / 180.; // dilatancy angle
 	thetaT = data(11) * PI / 180.; // transition angle
@@ -48,9 +48,12 @@ SolidMinkley::SolidMinkley(const Math_Group::Matrix& data)
 	T_ref = data(15); // reference temperature dependency parameter for "
 	Bt = data(16); // constant factor for Arrhenius term
 	Q = data(17); // activation energy in Arrhenius term
-	hard2 = data(18); //second order hardening term
-	hard4 = data(19); //second order hardening term
-
+	hard_A1 = data(18); // first coefficient of sine-hardening part
+	hard_A2 = data(19); // second coefficient of sine-hardening part
+	if (std::abs(hard_A2) < DBL_EPSILON)
+		hard_A2 = 1.;
+	hard_B1 = data(20); // first coefficient of sigmoid softening cut-off
+	hard_B2 = data(21); // second coefficient of sigmoid softening cut-off
 	etaM = etaM0;
 	coh = coh0;
 	GM = GM0;
@@ -86,8 +89,9 @@ void SolidMinkley::UpdateMinkleyProperties(double s_eff, const double eps_p_eff,
 		etaM = etaM0;
 	etaM *= Bt * std::exp(Q * (-dT) / (PhysicalConstant::IdealGasConstant * Temperature * T_ref));
 
-	coh = std::max(coh0 * (1. + eps_p_eff * (hard + eps_p_eff * (hard2 + eps_p_eff * eps_p_eff * hard4))),
-	               coh0 / 10.); // fourth order isotropic hardening/softening
+	coh = coh_res
+	      + (coh0 - coh_res) * (1 + hard_A1 * std::sin(eps_p_eff / hard_A2))
+	            * (1 - 1 / (1 + std::exp(-hard_B1 * (eps_p_eff - hard_B2))));
 	//	if (etaM / etaM0 < 1.e-2)
 	//		std::cout << "WARNING: Maxwell viscosity sank to 100th of original value." << std::endl;
 }
@@ -630,9 +634,11 @@ void SolidMinkley::CalViscoplasticJacobian(const double dt, const KVec& stress_c
 	// G_72 - G_75 zero
 
 	// build G_76
-	if ((coh - coh0 / 10.) > DBL_EPSILON)
-		Jac.block<1, 1>(26, 25)(0) = -coh0 * (hard + 2. * e_eff_i * (hard2 + 2. * e_eff_i * e_eff_i * hard4))
-		                             * std::cos(phi) / GM;
+	const double temp1 = hard_A1 / hard_A2 * std::cos(e_eff_i / hard_A2);
+	const double temp2 = 1 + std::exp(-hard_B1 * (e_eff_i - hard_B2));
+	const double temp3 = -hard_B1 * (temp2 - 1) / (temp2 * temp2);
+	Jac.block<1, 1>(26, 25)(0) = -std::cos(phi) / GM * (coh0 - coh_res)
+	                             * (temp1 * (1 - 1 / temp2) + (1 + hard_A1 * std::sin(e_eff_i / hard_A2)) * temp3);
 
 	// build G_77
 	Jac.block<1, 1>(26, 26)(0) = -eta_reg;
