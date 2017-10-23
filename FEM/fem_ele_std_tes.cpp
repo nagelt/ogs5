@@ -689,7 +689,7 @@ double CFiniteElementStd::CalCoef_RHS_TES(const int dof_index)
 				// AB + \Delta H <--> A + B
 				H_vap = - SolidProp->reaction_enthalpy;
 				//enthalpy correction
-				if (SolidProp->Capacity_mode == 4 || SolidProp->Capacity_mode == 5)
+				if (SolidProp->Capacity_mode == 4 || SolidProp->Capacity_mode == 5 || SolidProp->Capacity_mode == 7)
 				{
 					const double rhoSR = gp_ele->rho_s_curr[gp];
 					const double dcp_drhoSR(
